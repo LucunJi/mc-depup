@@ -1,7 +1,7 @@
 import { promises as fs } from "fs"
 import * as core from '@actions/core'
-import { fetchLatestMcVersions, fetchMavenMeta } from "./network.js"
-import { GitHubVariables, McVersion, isString } from "./utils.js"
+import { fetchLatestMcVersions, fetchMavenMeta } from "./network"
+import { GitHubVariables, McVersion, isString } from "./utils"
 import * as prop from "properties-parser"
 import * as yml from "yaml"
 import escapeStringRegexp from "escape-string-regexp"
