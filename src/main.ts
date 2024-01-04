@@ -214,7 +214,7 @@ function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowW
                 ++i
                 break
             case '*':
-                replaced = '(.*)'
+                replaced = '(.*?)'
                 extractionType.push('*')
                 isWildcard = true
                 ++i
