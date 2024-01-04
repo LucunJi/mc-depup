@@ -5,6 +5,7 @@ import { GitHubVariables, McVersion, isString } from "./utils.js"
 import * as prop from "properties-parser"
 import * as yml from "yaml"
 import escapeStringRegexp from "escape-string-regexp"
+import { setTimeout } from "timers/promises"
 
 const PROPERTIES_FILE = 'gradle.properties'
 const MINECRAFT_VERSION_KEY = 'minecraft_version'
@@ -27,19 +28,23 @@ export async function run(): Promise<void> {
         const githubVars = new GitHubVariables()
 
         let targetMcVersion = currMcVersion
+        let newerMcVersion = false
         if (githubVars.updateMcPatch) {
             const mcVersions = await fetchLatestMcVersions()
             const latestMcPatch = mcVersions.get(currMcVersion.minor)!
             targetMcVersion = new McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch)
-
-            core.debug(`Update ${MINECRAFT_VERSION_KEY} from ${currMcVersionStr} to ${targetMcVersion.toString()}`)
-            properties.set(MINECRAFT_VERSION_KEY, targetMcVersion.toString())
+            newerMcVersion = targetMcVersion.compare(currMcVersion) > 0
+            if (newerMcVersion) {
+                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()}`)
+                properties.set(MINECRAFT_VERSION_KEY, targetMcVersion.toString())
+            } else {
+                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()} (no change)`)
+            }
         } else {
-            core.debug(`Skip updating ${MINECRAFT_VERSION_KEY}`)
+            core.info(`Skip updating ${MINECRAFT_VERSION_KEY}`)
         }
 
-        const needUpdateDep = !githubVars.updateOnlyWithMc
-            || targetMcVersion.compare(currMcVersion) > 0
+        const needUpdateDep = !githubVars.updateOnlyWithMc || newerMcVersion
         let updatedVariables = 0
         let totalVariables = 0
         if (needUpdateDep) {
@@ -62,7 +67,7 @@ export async function run(): Promise<void> {
             const results = await Promise.all(tasks)
             for (let i = 0; i < results.length; ++i) {
                 const result = results[i]
-                if (result === undefined) 
+                if (result === undefined)
                     continue
 
                 const config = configs[i]
@@ -75,7 +80,7 @@ export async function run(): Promise<void> {
                         ++updatedVariables
                         core.info(`${name}: ${oldVal} => ${newVal}`)
                     } else {
-                        core.info(`${name}: no change (${oldVal})`)
+                        core.info(`${name}: ${oldVal} => ${newVal} (no change)`)
                     }
                     ++totalVariables
                 }
@@ -107,6 +112,9 @@ async function fetchUpdate(config: UpdateConfigEntry, targetMcVersion: McVersion
     Promise<{ artifactId: string, version: string } | undefined> {
     // assume that Minecraft has a very limited number of patches per minor version
     for (let mcPatch = targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
+        if (mcPatch !== targetMcVersion.patch)
+            await setTimeout(1000)
+
         const context = {
             mcVersion: new McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch)
         }
@@ -120,7 +128,7 @@ async function fetchUpdate(config: UpdateConfigEntry, targetMcVersion: McVersion
             continue
         }
 
-        const { result: versionPattern, extractions } =
+        const { result: versionPattern, extractionTypes } =
             parsePattern(config.version, { mcVersion: targetMcVersion }, true, true)
         const versionRegex = new RegExp(`^${versionPattern}$`)
         let bestVersion: string | undefined
@@ -129,13 +137,13 @@ async function fetchUpdate(config: UpdateConfigEntry, targetMcVersion: McVersion
             const matchResult = versionStr.match(versionRegex)
             if (matchResult === null)
                 continue
-            if (matchResult.length - 1 !== extractions.length)
+            if (matchResult.length - 1 !== extractionTypes.length)
                 throw new Error('Length of match result does not match expectation')
 
             const extraction = matchResult.slice(1)
             if (bestExtraction === undefined
-                || compareExtraction(extraction, bestExtraction, extractions) >= 0) {
-                bestExtraction = extractions
+                || compareExtraction(extraction, bestExtraction, extractionTypes) >= 0) {
+                bestExtraction = extraction
                 bestVersion = versionStr
             }
         }
@@ -161,7 +169,9 @@ function compareExtraction(x: string[], y: string[], types: ExtractionType[]): n
             case '#': cmp = parseInt(x[i]) - parseInt(y[i]); break
             case '*': cmp = 0; break;
         }
-        if (cmp != 0)
+        if (Number.isNaN(cmp))
+            throw new Error('Illegal compare result, possibily a bug in pattern matching')
+        if (cmp !== 0)
             return cmp
     }
     return 0
@@ -169,9 +179,9 @@ function compareExtraction(x: string[], y: string[], types: ExtractionType[]): n
 
 
 type ExtractionType = '#' | '*'
-function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowWildcard: boolean, escapeForRegex: boolean): { result: string, extractions: ExtractionType[] } {
+function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowWildcard: boolean, escapeForRegex: boolean): { result: string, extractionTypes: ExtractionType[] } {
     if (pattern.length == 0)
-        return { result: '', extractions: [] }
+        return { result: '', extractionTypes: [] }
 
     let constructed = ''
     let extractionType: ExtractionType[] = []
@@ -238,7 +248,7 @@ function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowW
                 let part = pattern.slice(start, end)
                 if (escapeForRegex)
                     part = escapeStringRegexp(part)
-                constructed += escapeStringRegexp
+                constructed += part
             }
             start = i
             constructed += replaced
@@ -252,7 +262,7 @@ function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowW
         constructed += part
     }
 
-    return { result: constructed, extractions: extractionType }
+    return { result: constructed, extractionTypes: extractionType }
 }
 
 async function readUpdateConfigs(properties: prop.Editor): Promise<UpdateConfigEntry[]> {
