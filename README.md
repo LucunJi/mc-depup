@@ -16,10 +16,29 @@ For a list of inputs and outputs, see [action.yml](action.yml)
 ***MC-DepUp is currently under heavy develop***,
 you may build and use it locally using instructions from [How to develop and run locally](#how-to-develop-and-run-locally).
 
-## How it works and how do I use it
+## Table of contents
+
+- [MC-DepUp](#mc-depup)
+   * [Table of contents](#table-of-contents)
+   * [How it works and how to use it](#how-it-works-and-how-to-use-it)
+      + [TL;DR](#tldr)
+      + [I stuck on some bug / I want to learn more](#i-stuck-on-some-bug--i-want-to-learn-more)
+         - [Variables](#variables)
+         - [Wildcards](#wildcards)
+         - [Trials and ordering](#trials-and-ordering)
+   * [How to develop and run locally](#how-to-develop-and-run-locally)
+   * [Sample settings](#sample-settings)
+      + [Fabric and Fabric API](#fabric-and-fabric-api)
+      + [NeoForge](#neoforge)
+      + [Forge](#forge)
+      + [malilib (Fabric)](#malilib-fabric)
+      + [GeckoLib (Fabric)](#geckolib-fabric)
+      + [Mod Menu (Fabric)](#mod-menu-fabric)
+
+## How it works and how to use it
 
 
-### TD;DR
+### TL;DR
 Go find some examples in [Sample settings](#sample-settings),
 you can learn most of it by reading the examples.
 
@@ -106,6 +125,9 @@ MC-DepUp picks the artifactId `bar-1.20.2` and version `1.2.1`.
 To develop, run `npm install` to setup,
 then run `npm run all` to do all sorts of checks and package all dependencies into `dist/index.js`
 
+If `npm run all` fails use `npm run package` instead.
+Usually it should be able to build; I just don't have time to make it pass all checks, especially when I'm not a TypeScript expert.
+
 To run locally, convert all inputs in [action.yml](action.yml) into upper case with the prefix `INPUT_`,
 and set those as your environment variables.
 
@@ -165,6 +187,7 @@ You can uncomment it after adding additional steps in to handle that.
 ### NeoForge
 <details>
 <summary>click to expand/fold</summary>
+
 ``` yaml
 # NeoForge
 - repository: https://maven.neoforged.net/releases
@@ -180,6 +203,7 @@ You can uncomment it after adding additional steps in to handle that.
 ### Forge
 <details>
 <summary>click to expand/fold</summary>
+
 ``` yaml
 # Forge
 - repository: https://maven.minecraftforge.net/
@@ -195,6 +219,7 @@ You can uncomment it after adding additional steps in to handle that.
 ### malilib (Fabric)
 <details>
 <summary>click to expand/fold</summary>
+
 ``` yaml
 # malilib
 - repository: https://masa.dy.fi/maven
@@ -211,6 +236,7 @@ You can uncomment it after adding additional steps in to handle that.
 ### GeckoLib (Fabric)
 <details>
 <summary>click to expand/fold</summary>
+
 ``` yaml
 # GeckoLib (Fabric)
 - repository: https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/
