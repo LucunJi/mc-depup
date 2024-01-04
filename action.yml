@@ -6,15 +6,30 @@ branding:
   icon: 'chevrons-up'
   color: 'yellow'
 
-# inputs:
-#   milliseconds:
-#     description: 'Your input description here'
-#     required: true
-#     default: '1000'
+inputs:
+  update_mc_patch:
+    description: |
+      'Update patch version of Minecraft'
+      'true | false'
+    default: true
 
-# outputs:
-#   time:
-#     description: 'Your output description here'
+  update_only_with_mc:
+    description: |
+      'Update only when Minecraft updates (depends on update_mc_patch)'
+      'true | false'
+    default: false
+
+  tolerable:
+    description: |
+      'Allow any of the configured dependency to fail'
+      'true | false'
+    default: false
+
+outputs:
+  any_update:
+    description: |
+      'Anything new according to configured update'
+      'true | false'
 
 runs:
   using: node21
