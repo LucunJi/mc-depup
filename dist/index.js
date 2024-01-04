@@ -1,9 +1,10 @@
-import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
-/******/ var __webpack_modules__ = ({
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
 
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -102,6 +103,7 @@ function escapeProperty(s) {
 /***/ 2186:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -444,6 +446,7 @@ Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: funct
 /***/ 717:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 // For internal use, subject to change.
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -508,6 +511,7 @@ exports.prepareKeyValueMessage = prepareKeyValueMessage;
 /***/ 8041:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -591,6 +595,7 @@ exports.OidcClient = OidcClient;
 /***/ 2981:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -655,6 +660,7 @@ exports.toPlatformPath = toPlatformPath;
 /***/ 1327:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -944,6 +950,7 @@ exports.summary = _summary;
 /***/ 5278:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -990,6 +997,7 @@ exports.toCommandProperties = toCommandProperties;
 /***/ 5526:
 /***/ (function(__unused_webpack_module, exports) {
 
+"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1077,6 +1085,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 /***/ 6255:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
+"use strict";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -1701,6 +1710,7 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 /***/ 9835:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkBypass = exports.getProxyUrl = void 0;
@@ -1786,9 +1796,31 @@ function isLoopbackAddress(host) {
 
 /***/ }),
 
+/***/ 8691:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = string => {
+	if (typeof string !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	// Escape characters with special meaning either inside or outside character sets.
+	// Use a simple backslash escape when it’s always valid, and a \unnnn escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+	return string
+		.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+		.replace(/-/g, '\\x2d');
+};
+
+
+/***/ }),
+
 /***/ 2603:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 const validator = __nccwpck_require__(1739);
@@ -1806,6 +1838,7 @@ module.exports = {
 /***/ 8280:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 const nameStartChar = ':A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD';
@@ -1885,6 +1918,7 @@ exports.nameRegexp = nameRegexp;
 /***/ 1739:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 const util = __nccwpck_require__(8280);
@@ -2315,6 +2349,7 @@ function getPositionFromMatch(match) {
 /***/ 660:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+"use strict";
 
 //parse Empty Node as self closing node
 const buildFromOrderedJs = __nccwpck_require__(2462);
@@ -2947,6 +2982,7 @@ exports.defaultOptions = defaultOptions;
 /***/ 5832:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+"use strict";
 
 ///@ts-check
 
@@ -3610,6 +3646,7 @@ module.exports = XMLParser;
 /***/ 2882:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -3730,6 +3767,7 @@ exports.prettify = prettify;
 /***/ 7462:
 /***/ ((module) => {
 
+"use strict";
 
 
 class XmlNode{
@@ -4331,6 +4369,7 @@ module.exports = __nccwpck_require__(4219);
 /***/ 4219:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var net = __nccwpck_require__(1808);
@@ -4602,6 +4641,7 @@ exports.debug = debug; // for test
 /***/ 5840:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4687,6 +4727,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 /***/ 4569:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4716,6 +4757,7 @@ exports["default"] = _default;
 /***/ 5332:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4730,6 +4772,7 @@ exports["default"] = _default;
 /***/ 2746:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4781,6 +4824,7 @@ exports["default"] = _default;
 /***/ 814:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4795,6 +4839,7 @@ exports["default"] = _default;
 /***/ 807:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4825,6 +4870,7 @@ function rng() {
 /***/ 5274:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4854,6 +4900,7 @@ exports["default"] = _default;
 /***/ 8950:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -4899,6 +4946,7 @@ exports["default"] = _default;
 /***/ 8628:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5012,6 +5060,7 @@ exports["default"] = _default;
 /***/ 6409:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5034,6 +5083,7 @@ exports["default"] = _default;
 /***/ 5998:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5118,6 +5168,7 @@ function _default(name, version, hashfunc) {
 /***/ 5122:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5161,6 +5212,7 @@ exports["default"] = _default;
 /***/ 9120:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5183,6 +5235,7 @@ exports["default"] = _default;
 /***/ 6900:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5206,6 +5259,7 @@ exports["default"] = _default;
 /***/ 1595:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -5230,86 +5284,593 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 399:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const fs_1 = __nccwpck_require__(7147);
+const core = __importStar(__nccwpck_require__(2186));
+const network_1 = __nccwpck_require__(2280);
+const utils_1 = __nccwpck_require__(1314);
+const prop = __importStar(__nccwpck_require__(4414));
+const yml = __importStar(__nccwpck_require__(4083));
+const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
+const promises_1 = __nccwpck_require__(8670);
+const PROPERTIES_FILE = 'gradle.properties';
+const MINECRAFT_VERSION_KEY = 'minecraft_version';
+const CONFIG_FILENAME = 'modding-dependencies.yml';
+const CONFIG_PATH = `.github/${CONFIG_FILENAME}`;
+/**
+ * The main function for the action.
+ * @returns {Promise<void>} Resolves when the action is complete.
+ */
+async function run() {
+    try {
+        const properties = prop.createEditor(PROPERTIES_FILE);
+        const currMcVersionStr = properties.get(MINECRAFT_VERSION_KEY);
+        if (currMcVersionStr === undefined)
+            throw Error(`${MINECRAFT_VERSION_KEY} is not found in ${PROPERTIES_FILE}`);
+        const currMcVersion = utils_1.McVersion.fromString(currMcVersionStr);
+        const githubVars = new utils_1.GitHubVariables();
+        let targetMcVersion = currMcVersion;
+        let newerMcVersion = false;
+        if (githubVars.updateMcPatch) {
+            const mcVersions = await (0, network_1.fetchLatestMcVersions)();
+            const latestMcPatch = mcVersions.get(currMcVersion.minor);
+            targetMcVersion = new utils_1.McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch);
+            newerMcVersion = targetMcVersion.compare(currMcVersion) > 0;
+            if (newerMcVersion) {
+                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()}`);
+                properties.set(MINECRAFT_VERSION_KEY, targetMcVersion.toString());
+            }
+            else {
+                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()} (no change)`);
+            }
+        }
+        else {
+            core.info(`Skip updating ${MINECRAFT_VERSION_KEY}`);
+        }
+        const needUpdateDep = !githubVars.updateOnlyWithMc || newerMcVersion;
+        let updatedVariables = 0;
+        let totalVariables = 0;
+        if (needUpdateDep) {
+            const configs = await readUpdateConfigs(properties);
+            const tasks = [];
+            for (const config of configs) {
+                const task = async () => {
+                    try {
+                        const version = await fetchUpdate(config, targetMcVersion);
+                        if (version !== undefined)
+                            return version;
+                    }
+                    finally { /* ignore */ }
+                    if (githubVars.tolerable)
+                        return undefined;
+                    // the error that actually get logged
+                    throw new Error('Fail fast in finding version');
+                };
+                tasks.push(task());
+            }
+            const results = await Promise.all(tasks);
+            for (let i = 0; i < results.length; ++i) {
+                const result = results[i];
+                if (result === undefined)
+                    continue;
+                const config = configs[i];
+                for (const variable of config.variables) {
+                    const [name, source] = Object.entries(variable)[0];
+                    const oldVal = properties.get(name);
+                    const newVal = result[source];
+                    if (oldVal !== newVal) {
+                        properties.set(name, newVal);
+                        ++updatedVariables;
+                        core.info(`${name}: ${oldVal} => ${newVal}`);
+                    }
+                    else {
+                        core.info(`${name}: ${oldVal} => ${newVal} (no change)`);
+                    }
+                    ++totalVariables;
+                }
+            }
+        }
+        properties.save();
+        core.info(`${updatedVariables}/${totalVariables} dependencies updated`);
+        githubVars.setAnyUpdate(updatedVariables > 0);
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
+}
+exports.run = run;
+/**
+ * @returns string of best matching version,
+ *  or undefined if matching version exist
+ */
+async function fetchUpdate(config, targetMcVersion) {
+    // assume that Minecraft has a very limited number of patches per minor version
+    for (let mcPatch = targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
+        if (mcPatch !== targetMcVersion.patch)
+            await (0, promises_1.setTimeout)(1000);
+        const context = {
+            mcVersion: new utils_1.McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch)
+        };
+        const artifactId = parsePattern(config.artifactId, context, false, false).result;
+        let versions;
+        try {
+            const meta = await (0, network_1.fetchMavenMeta)(config.repository, config.groupId, artifactId);
+            versions = meta.versions;
+        }
+        catch (error) {
+            core.debug(`Trial failed for ${config.groupId}:${artifactId} in ${config.repository}`);
+            continue;
+        }
+        const { result: versionPattern, extractionTypes } = parsePattern(config.version, { mcVersion: targetMcVersion }, true, true);
+        const versionRegex = new RegExp(`^${versionPattern}$`);
+        let bestVersion;
+        let bestExtraction;
+        for (const versionStr of versions) {
+            const matchResult = versionStr.match(versionRegex);
+            if (matchResult === null)
+                continue;
+            if (matchResult.length - 1 !== extractionTypes.length)
+                throw new Error('Length of match result does not match expectation');
+            const extraction = matchResult.slice(1);
+            if (bestExtraction === undefined
+                || compareExtraction(extraction, bestExtraction, extractionTypes) >= 0) {
+                bestExtraction = extraction;
+                bestVersion = versionStr;
+            }
+        }
+        if (bestVersion === undefined || bestExtraction === undefined)
+            continue;
+        core.info(`The best matching version is ${bestVersion} for ${config.groupId}:${artifactId} in ${config.repository}`);
+        return { artifactId: artifactId, version: bestVersion };
+    }
+    core.info(`No matching version is found for ${config.groupId}:${config.artifactId} in ${config.repository}`);
+    return undefined;
+}
+/**
+ * Lengths of three arguments must match
+ */
+function compareExtraction(x, y, types) {
+    for (let i = 0; i < x.length; ++i) {
+        let cmp;
+        switch (types[i]) {
+            case '#':
+                cmp = parseInt(x[i]) - parseInt(y[i]);
+                break;
+            case '*':
+                cmp = 0;
+                break;
+        }
+        if (Number.isNaN(cmp))
+            throw new Error('Illegal compare result, possibily a bug in pattern matching');
+        if (cmp !== 0)
+            return cmp;
+    }
+    return 0;
+}
+function parsePattern(pattern, context, allowWildcard, escapeForRegex) {
+    if (pattern.length === 0)
+        return { result: '', extractionTypes: [] };
+    let constructed = '';
+    const extractionType = [];
+    const replacer = (varName) => {
+        switch (varName) {
+            case 'mcMajor': return context.mcVersion.major.toString();
+            case 'mcMinor': return context.mcVersion.minor.toString();
+            case 'mcPatch': return context.mcVersion.patch.toString();
+            case 'mcVersion': return context.mcVersion.toString(false);
+            case 'mcVersionFull': return context.mcVersion.toString(true);
+            default: throw new Error(`Invalid variable ${varName}`);
+        }
+    };
+    // const varFilled = pattern.replaceAll(/\${[^{}]+}/, match => replacer(match.slice(2, -1)))
+    // This allows more flexibility if we want to add more patterns,
+    // as all patterns are processed in one-go
+    let start = 0;
+    let i = 0;
+    do {
+        let replaced;
+        const end = i;
+        let isWildcard = false;
+        switch (pattern[i]) {
+            case '#':
+                replaced = '(\\d+)';
+                extractionType.push('#');
+                isWildcard = true;
+                ++i;
+                break;
+            case '*':
+                replaced = '(.*?)';
+                extractionType.push('*');
+                isWildcard = true;
+                ++i;
+                break;
+            case '$': {
+                ++i;
+                if (i < pattern.length && pattern[i] !== '{')
+                    break;
+                let right = i + 1;
+                while (right < pattern.length && pattern[right] !== '}')
+                    ++right;
+                if (right >= pattern.length)
+                    throw new Error('No right bracket is found');
+                // i + 1 <= right < pattern.length
+                replaced = replacer(pattern.slice(i + 1, right));
+                if (escapeForRegex)
+                    replaced = (0, escape_string_regexp_1.default)(replaced);
+                i = right + 1;
+                break;
+            }
+            default:
+                ++i;
+                break;
+        }
+        if (isWildcard && !allowWildcard)
+            throw new Error('Wildcard is only allowed in version');
+        if (replaced !== undefined) {
+            // start <= end < pattern.length
+            if (end > start) {
+                let part = pattern.slice(start, end);
+                if (escapeForRegex)
+                    part = (0, escape_string_regexp_1.default)(part);
+                constructed += part;
+            }
+            start = i;
+            constructed += replaced;
+        }
+    } while (i < pattern.length);
+    if (start < pattern.length) {
+        let part = pattern.slice(start);
+        if (escapeForRegex)
+            part = (0, escape_string_regexp_1.default)(part);
+        constructed += part;
+    }
+    return { result: constructed, extractionTypes: extractionType };
+}
+async function readUpdateConfigs(properties) {
+    const configs = [];
+    const configFile = await fs_1.promises.readFile(CONFIG_PATH);
+    const configYml = yml.parse(configFile.toString());
+    if (!Array.isArray(configYml))
+        throw new Error('Configuration must be an array');
+    for (const entry of configYml) {
+        const repository = entry['repository'];
+        const groupId = entry['groupId'];
+        const artifactId = entry['artifactId'];
+        const version = entry['version'];
+        const variables = entry['variables'];
+        if (!(0, utils_1.isString)(repository))
+            throw new Error('repository must be a string');
+        if (!(0, utils_1.isString)(groupId))
+            throw new Error('groupId must be a string');
+        if (!(0, utils_1.isString)(artifactId))
+            throw new Error('artifactId must be a string');
+        if (!(0, utils_1.isString)(version))
+            throw new Error('version must be a string');
+        if (!Array.isArray(variables))
+            throw new Error('variables must be an array');
+        for (const variable of variables) {
+            const content = Object.entries(variable);
+            if (content.length !== 1 || !(0, utils_1.isString)(content[0][0])
+                || content[0][1] !== 'version' && content[0][1] !== 'artifactId') {
+                throw new Error('Each entry in variables must be a mapping from a name to either version or artifactId');
+            }
+            const variableName = content[0][0];
+            if (properties.get(variableName) === undefined) {
+                throw new Error(`Configured variable ${variableName} does not exist in ${PROPERTIES_FILE}`);
+            }
+        }
+        configs.push({ repository, groupId, artifactId, version, variables });
+    }
+    return configs;
+}
+
+
+/***/ }),
+
+/***/ 2280:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fetchMavenMeta = exports.fetchLatestMcVersions = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const fast_xml_parser_1 = __nccwpck_require__(2603);
+const utils_1 = __nccwpck_require__(1314);
+const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
+async function fetchLatestMcVersions() {
+    const resp = await fetch(VERSION_MANIFEST_URL);
+    const json = await resp.json();
+    const latest = new Map(); // minor to patch version
+    for (const versionStr of json.versions) {
+        if (versionStr.type === 'release') {
+            const version = utils_1.McVersion.fromString(versionStr.id);
+            if ((latest.get(version.minor) ?? -1) < version.patch) {
+                latest.set(version.minor, version.patch);
+            }
+        }
+    }
+    return latest;
+}
+exports.fetchLatestMcVersions = fetchLatestMcVersions;
+const MAVEN_META_PARSER = new fast_xml_parser_1.XMLParser();
+/**
+ * Returns a list of versions from A Level Metadata
+ * See https://maven.apache.org/repositories/metadata.html#the-a-level-metadata
+ */
+async function fetchMavenMeta(repo, groupId, artifactId) {
+    const path = `${groupId.replaceAll('.', '/')}/${artifactId}/maven-metadata.xml`;
+    const repoClean = repo.endsWith('/') ? repo : `${repo}/`;
+    const url = new URL(path, repoClean);
+    core.debug(`Try to fetch request to ${url.toString()}`);
+    const resp = await fetch(url);
+    if (!resp.ok)
+        throw new Error(`Not 2xx status code: ${resp.status}`);
+    const text = await resp.text();
+    const xml = MAVEN_META_PARSER.parse(text);
+    let versions = xml.metadata?.versioning?.versions?.version;
+    if ((0, utils_1.isString)(versions)) {
+        versions = [versions];
+    }
+    else if (Array.isArray(versions)) {
+        for (const version of versions) {
+            if (!(0, utils_1.isString)(version)) {
+                throw new Error('Some version is not a string');
+            }
+        }
+    }
+    else {
+        throw new Error('Could not find versions');
+    }
+    return { versions: versions };
+}
+exports.fetchMavenMeta = fetchMavenMeta;
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isString = exports.McVersion = exports.GitHubVariables = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+class GitHubVariables {
+    updateMcPatch = core.getInput('update_mc_patch').toLowerCase() === 'true';
+    updateOnlyWithMc = core.getInput('update_only_with_mc').toLowerCase() === 'true';
+    tolerable = core.getInput('tolerable').toLowerCase() === 'true';
+    setAnyUpdate(val) {
+        core.setOutput('any_update', val);
+    }
+}
+exports.GitHubVariables = GitHubVariables;
+class McVersion {
+    major;
+    minor;
+    patch;
+    constructor(major, minor, patch) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
+    }
+    static fromString(version) {
+        const parts = version.split('.');
+        return new McVersion(parseInt(parts[0] ?? '0'), parseInt(parts[1] ?? '0'), parseInt(parts[2] ?? '0'));
+    }
+    toString(full = false) {
+        let ret = `${this.major}.${this.minor}`;
+        if (this.patch > 0 || full)
+            ret += `.${this.patch}`;
+        return ret;
+    }
+    compare(other) {
+        if (this.major > other.major)
+            return 1;
+        else if (this.major < other.major)
+            return -1;
+        else if (this.minor > other.minor)
+            return 1;
+        else if (this.minor < other.minor)
+            return -1;
+        else if (this.patch > other.patch)
+            return 1;
+        else if (this.patch < other.patch)
+            return -1;
+        else
+            return 0;
+    }
+}
+exports.McVersion = McVersion;
+function isString(x) {
+    const ret = (typeof x === 'string') || (x instanceof String);
+    return ret;
+}
+exports.isString = isString;
+
+
+/***/ }),
+
 /***/ 9491:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("assert");
+"use strict";
+module.exports = require("assert");
 
 /***/ }),
 
 /***/ 6113:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("crypto");
+"use strict";
+module.exports = require("crypto");
 
 /***/ }),
 
 /***/ 2361:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("events");
+"use strict";
+module.exports = require("events");
 
 /***/ }),
 
 /***/ 7147:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("fs");
+"use strict";
+module.exports = require("fs");
 
 /***/ }),
 
 /***/ 3685:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("http");
+"use strict";
+module.exports = require("http");
 
 /***/ }),
 
 /***/ 5687:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("https");
+"use strict";
+module.exports = require("https");
 
 /***/ }),
 
 /***/ 1808:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("net");
+"use strict";
+module.exports = require("net");
 
 /***/ }),
 
 /***/ 2037:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("os");
+"use strict";
+module.exports = require("os");
 
 /***/ }),
 
 /***/ 1017:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("path");
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 8670:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("timers/promises");
 
 /***/ }),
 
 /***/ 4404:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("tls");
+"use strict";
+module.exports = require("tls");
 
 /***/ }),
 
 /***/ 3837:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
+"use strict";
+module.exports = require("util");
 
 /***/ }),
 
 /***/ 8109:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -5395,6 +5956,7 @@ exports.composeCollection = composeCollection;
 /***/ 5050:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Document = __nccwpck_require__(42);
@@ -5445,6 +6007,7 @@ exports.composeDoc = composeDoc;
 /***/ 8676:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Alias = __nccwpck_require__(5639);
@@ -5547,6 +6110,7 @@ exports.composeNode = composeNode;
 /***/ 4766:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -5636,6 +6200,7 @@ exports.composeScalar = composeScalar;
 /***/ 9493:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var directives = __nccwpck_require__(5400);
@@ -5864,6 +6429,7 @@ exports.Composer = Composer;
 /***/ 2986:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Pair = __nccwpck_require__(246);
@@ -5984,6 +6550,7 @@ exports.resolveBlockMap = resolveBlockMap;
 /***/ 9485:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -6187,6 +6754,7 @@ exports.resolveBlockScalar = resolveBlockScalar;
 /***/ 2289:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var YAMLSeq = __nccwpck_require__(5161);
@@ -6242,6 +6810,7 @@ exports.resolveBlockSeq = resolveBlockSeq;
 /***/ 1250:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function resolveEnd(end, offset, reqSpace, onError) {
@@ -6288,6 +6857,7 @@ exports.resolveEnd = resolveEnd;
 /***/ 45:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -6496,6 +7066,7 @@ exports.resolveFlowCollection = resolveFlowCollection;
 /***/ 7578:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -6728,6 +7299,7 @@ exports.resolveFlowScalar = resolveFlowScalar;
 /***/ 6985:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function resolveProps(tokens, { flow, indicator, next, offset, onError, startOnNewline }) {
@@ -6871,6 +7443,7 @@ exports.resolveProps = resolveProps;
 /***/ 976:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function containsNewline(key) {
@@ -6914,6 +7487,7 @@ exports.containsNewline = containsNewline;
 /***/ 8781:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function emptyScalarPosition(offset, before, pos) {
@@ -6950,6 +7524,7 @@ exports.emptyScalarPosition = emptyScalarPosition;
 /***/ 3669:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var utilContainsNewline = __nccwpck_require__(976);
@@ -6974,6 +7549,7 @@ exports.flowIndentCheck = flowIndentCheck;
 /***/ 6899:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -7000,6 +7576,7 @@ exports.mapIncludes = mapIncludes;
 /***/ 42:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Alias = __nccwpck_require__(5639);
@@ -7343,6 +7920,7 @@ exports.Document = Document;
 /***/ 8459:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -7427,6 +8005,7 @@ exports.findNewAnchor = findNewAnchor;
 /***/ 3412:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -7490,6 +8069,7 @@ exports.applyReviver = applyReviver;
 /***/ 9652:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Alias = __nccwpck_require__(5639);
@@ -7588,6 +8168,7 @@ exports.createNode = createNode;
 /***/ 5400:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -7773,6 +8354,7 @@ exports.Directives = Directives;
 /***/ 4236:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 class YAMLError extends Error {
@@ -7842,7 +8424,7 @@ exports.prettifyError = prettifyError;
 /***/ 4083:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var __webpack_unused_export__;
+"use strict";
 
 
 var composer = __nccwpck_require__(9493);
@@ -7864,35 +8446,35 @@ var visit = __nccwpck_require__(6796);
 
 
 
-__webpack_unused_export__ = composer.Composer;
-__webpack_unused_export__ = Document.Document;
-__webpack_unused_export__ = Schema.Schema;
-__webpack_unused_export__ = errors.YAMLError;
-__webpack_unused_export__ = errors.YAMLParseError;
-__webpack_unused_export__ = errors.YAMLWarning;
-__webpack_unused_export__ = Alias.Alias;
-__webpack_unused_export__ = identity.isAlias;
-__webpack_unused_export__ = identity.isCollection;
-__webpack_unused_export__ = identity.isDocument;
-__webpack_unused_export__ = identity.isMap;
-__webpack_unused_export__ = identity.isNode;
-__webpack_unused_export__ = identity.isPair;
-__webpack_unused_export__ = identity.isScalar;
-__webpack_unused_export__ = identity.isSeq;
-__webpack_unused_export__ = Pair.Pair;
-__webpack_unused_export__ = Scalar.Scalar;
-__webpack_unused_export__ = YAMLMap.YAMLMap;
-__webpack_unused_export__ = YAMLSeq.YAMLSeq;
-__webpack_unused_export__ = cst;
-__webpack_unused_export__ = lexer.Lexer;
-__webpack_unused_export__ = lineCounter.LineCounter;
-__webpack_unused_export__ = parser.Parser;
-exports.Qc = publicApi.parse;
-__webpack_unused_export__ = publicApi.parseAllDocuments;
-__webpack_unused_export__ = publicApi.parseDocument;
-__webpack_unused_export__ = publicApi.stringify;
-__webpack_unused_export__ = visit.visit;
-__webpack_unused_export__ = visit.visitAsync;
+exports.Composer = composer.Composer;
+exports.Document = Document.Document;
+exports.Schema = Schema.Schema;
+exports.YAMLError = errors.YAMLError;
+exports.YAMLParseError = errors.YAMLParseError;
+exports.YAMLWarning = errors.YAMLWarning;
+exports.Alias = Alias.Alias;
+exports.isAlias = identity.isAlias;
+exports.isCollection = identity.isCollection;
+exports.isDocument = identity.isDocument;
+exports.isMap = identity.isMap;
+exports.isNode = identity.isNode;
+exports.isPair = identity.isPair;
+exports.isScalar = identity.isScalar;
+exports.isSeq = identity.isSeq;
+exports.Pair = Pair.Pair;
+exports.Scalar = Scalar.Scalar;
+exports.YAMLMap = YAMLMap.YAMLMap;
+exports.YAMLSeq = YAMLSeq.YAMLSeq;
+exports.CST = cst;
+exports.Lexer = lexer.Lexer;
+exports.LineCounter = lineCounter.LineCounter;
+exports.Parser = parser.Parser;
+exports.parse = publicApi.parse;
+exports.parseAllDocuments = publicApi.parseAllDocuments;
+exports.parseDocument = publicApi.parseDocument;
+exports.stringify = publicApi.stringify;
+exports.visit = visit.visit;
+exports.visitAsync = visit.visitAsync;
 
 
 /***/ }),
@@ -7900,6 +8482,7 @@ __webpack_unused_export__ = visit.visitAsync;
 /***/ 6909:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function debug(logLevel, ...messages) {
@@ -7926,6 +8509,7 @@ exports.warn = warn;
 /***/ 5639:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var anchors = __nccwpck_require__(8459);
@@ -8036,6 +8620,7 @@ exports.Alias = Alias;
 /***/ 3466:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var createNode = __nccwpck_require__(9652);
@@ -8195,6 +8780,7 @@ exports.isEmptyPath = isEmptyPath;
 /***/ 1399:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var applyReviver = __nccwpck_require__(3412);
@@ -8242,6 +8828,7 @@ exports.NodeBase = NodeBase;
 /***/ 246:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var createNode = __nccwpck_require__(9652);
@@ -8288,6 +8875,7 @@ exports.createPair = createPair;
 /***/ 9338:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -8322,6 +8910,7 @@ exports.isScalarValue = isScalarValue;
 /***/ 6011:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var stringifyCollection = __nccwpck_require__(2466);
@@ -8476,6 +9065,7 @@ exports.findPair = findPair;
 /***/ 5161:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var createNode = __nccwpck_require__(9652);
@@ -8598,6 +9188,7 @@ exports.YAMLSeq = YAMLSeq;
 /***/ 4676:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var log = __nccwpck_require__(6909);
@@ -8711,6 +9302,7 @@ exports.addPairToJSMap = addPairToJSMap;
 /***/ 5589:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 const ALIAS = Symbol.for('yaml.alias');
@@ -8771,6 +9363,7 @@ exports.isSeq = isSeq;
 /***/ 2463:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -8817,6 +9410,7 @@ exports.toJS = toJS;
 /***/ 9027:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var resolveBlockScalar = __nccwpck_require__(9485);
@@ -9042,6 +9636,7 @@ exports.setScalarValue = setScalarValue;
 /***/ 6307:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -9112,6 +9707,7 @@ exports.stringify = stringify;
 /***/ 8497:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 const BREAK = Symbol('break visit');
@@ -9218,6 +9814,7 @@ exports.visit = visit;
 /***/ 9169:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var cstScalar = __nccwpck_require__(9027);
@@ -9337,6 +9934,7 @@ exports.tokenType = tokenType;
 /***/ 5976:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var cst = __nccwpck_require__(9169);
@@ -10047,6 +10645,7 @@ exports.Lexer = Lexer;
 /***/ 1929:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -10095,6 +10694,7 @@ exports.LineCounter = LineCounter;
 /***/ 3328:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var cst = __nccwpck_require__(9169);
@@ -11056,6 +11656,7 @@ exports.Parser = Parser;
 /***/ 8649:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var composer = __nccwpck_require__(9493);
@@ -11167,6 +11768,7 @@ exports.stringify = stringify;
 /***/ 6831:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -11214,6 +11816,7 @@ exports.Schema = Schema;
 /***/ 83:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -11240,6 +11843,7 @@ exports.map = map;
 /***/ 6703:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11264,6 +11868,7 @@ exports.nullTag = nullTag;
 /***/ 1693:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -11290,6 +11895,7 @@ exports.seq = seq;
 /***/ 2201:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var stringifyString = __nccwpck_require__(6226);
@@ -11313,6 +11919,7 @@ exports.string = string;
 /***/ 2045:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11341,6 +11948,7 @@ exports.boolTag = boolTag;
 /***/ 6810:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11395,6 +12003,7 @@ exports.floatNaN = floatNaN;
 /***/ 3019:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var stringifyNumber = __nccwpck_require__(4174);
@@ -11444,6 +12053,7 @@ exports.intOct = intOct;
 /***/ 27:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var map = __nccwpck_require__(83);
@@ -11476,6 +12086,7 @@ exports.schema = schema;
 /***/ 4545:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11547,6 +12158,7 @@ exports.schema = schema;
 /***/ 4138:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var map = __nccwpck_require__(83);
@@ -11640,6 +12252,7 @@ exports.getTags = getTags;
 /***/ 5724:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11715,6 +12328,7 @@ exports.binary = binary;
 /***/ 2631:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11751,6 +12365,7 @@ exports.trueTag = trueTag;
 /***/ 8035:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -11808,6 +12423,7 @@ exports.floatNaN = floatNaN;
 /***/ 9503:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var stringifyNumber = __nccwpck_require__(4174);
@@ -11891,6 +12507,7 @@ exports.intOct = intOct;
 /***/ 8974:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -11975,6 +12592,7 @@ exports.omap = omap;
 /***/ 9841:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -12064,6 +12682,7 @@ exports.resolvePairs = resolvePairs;
 /***/ 5389:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var map = __nccwpck_require__(83);
@@ -12110,6 +12729,7 @@ exports.schema = schema;
 /***/ 7847:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -12213,6 +12833,7 @@ exports.set = set;
 /***/ 1156:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var stringifyNumber = __nccwpck_require__(4174);
@@ -12325,6 +12946,7 @@ exports.timestamp = timestamp;
 /***/ 2889:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 const FOLD_FLOW = 'flow';
@@ -12472,6 +13094,7 @@ exports.foldFlowLines = foldFlowLines;
 /***/ 8409:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var anchors = __nccwpck_require__(8459);
@@ -12606,6 +13229,7 @@ exports.stringify = stringify;
 /***/ 2466:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Collection = __nccwpck_require__(3466);
@@ -12766,6 +13390,7 @@ exports.stringifyCollection = stringifyCollection;
 /***/ 5182:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 /**
@@ -12797,6 +13422,7 @@ exports.stringifyComment = stringifyComment;
 /***/ 5225:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -12891,6 +13517,7 @@ exports.stringifyDocument = stringifyDocument;
 /***/ 4174:
 /***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
 
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
@@ -12924,6 +13551,7 @@ exports.stringifyNumber = stringifyNumber;
 /***/ 4875:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -13083,6 +13711,7 @@ exports.stringifyPair = stringifyPair;
 /***/ 6226:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var Scalar = __nccwpck_require__(9338);
@@ -13420,6 +14049,7 @@ exports.stringifyString = stringifyString;
 /***/ 6796:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
 
 var identity = __nccwpck_require__(5589);
@@ -13660,462 +14290,60 @@ exports.visitAsync = visitAsync;
 
 /***/ })
 
-/******/ });
+/******/ 	});
 /************************************************************************/
-/******/ // The module cache
-/******/ var __webpack_module_cache__ = {};
-/******/ 
-/******/ // The require function
-/******/ function __nccwpck_require__(moduleId) {
-/******/ 	// Check if module is in cache
-/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 	if (cachedModule !== undefined) {
-/******/ 		return cachedModule.exports;
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __nccwpck_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 		}
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
 /******/ 	}
-/******/ 	// Create a new module (and put it into the cache)
-/******/ 	var module = __webpack_module_cache__[moduleId] = {
-/******/ 		// no module.id needed
-/******/ 		// no module.loaded needed
-/******/ 		exports: {}
-/******/ 	};
-/******/ 
-/******/ 	// Execute the module function
-/******/ 	var threw = true;
-/******/ 	try {
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 		threw = false;
-/******/ 	} finally {
-/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 	}
-/******/ 
-/******/ 	// Return the exports of the module
-/******/ 	return module.exports;
-/******/ }
-/******/ 
+/******/ 	
 /************************************************************************/
-/******/ /* webpack/runtime/compat */
-/******/ 
-/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
-/******/ 
+/******/ 	/* webpack/runtime/compat */
+/******/ 	
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
+var exports = __webpack_exports__;
 
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: ./node_modules/fast-xml-parser/src/fxp.js
-var fxp = __nccwpck_require__(2603);
-;// CONCATENATED MODULE: ./src/utils.ts
-
-class GitHubVariables {
-    updateMcPatch = core.getInput('update_mc_patch').toLowerCase() === 'true';
-    updateOnlyWithMc = core.getInput('update_only_with_mc').toLowerCase() === 'true';
-    tolerable = core.getInput('tolerable').toLowerCase() === 'true';
-    setAnyUpdate(val) {
-        core.setOutput('any_update', val);
-    }
-}
-class McVersion {
-    major;
-    minor;
-    patch;
-    constructor(major, minor, patch) {
-        this.major = major;
-        this.minor = minor;
-        this.patch = patch;
-    }
-    static fromString(version) {
-        const parts = version.split('.');
-        return new McVersion(parseInt(parts[0] ?? '0'), parseInt(parts[1] ?? '0'), parseInt(parts[2] ?? '0'));
-    }
-    toString(full = false) {
-        let ret = `${this.major}.${this.minor}`;
-        if (this.patch > 0 || full)
-            ret += `.${this.patch}`;
-        return ret;
-    }
-    compare(other) {
-        if (this.major > other.major)
-            return 1;
-        else if (this.major < other.major)
-            return -1;
-        else if (this.minor > other.minor)
-            return 1;
-        else if (this.minor < other.minor)
-            return -1;
-        else if (this.patch > other.patch)
-            return 1;
-        else if (this.patch < other.patch)
-            return -1;
-        else
-            return 0;
-    }
-}
-function isString(x) {
-    const ret = (typeof x === 'string') || (x instanceof String);
-    return ret;
-}
-
-;// CONCATENATED MODULE: ./src/network.ts
-
-
-
-const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
-async function fetchLatestMcVersions() {
-    const resp = await fetch(VERSION_MANIFEST_URL);
-    const json = await resp.json();
-    const latest = new Map(); // minor to patch version
-    for (const versionStr of json.versions) {
-        if (versionStr.type === 'release') {
-            const version = McVersion.fromString(versionStr.id);
-            if ((latest.get(version.minor) ?? -1) < version.patch) {
-                latest.set(version.minor, version.patch);
-            }
-        }
-    }
-    return latest;
-}
-const MAVEN_META_PARSER = new fxp.XMLParser();
-/**
- * Returns a list of versions from A Level Metadata
- * See https://maven.apache.org/repositories/metadata.html#the-a-level-metadata
- */
-async function fetchMavenMeta(repo, groupId, artifactId) {
-    const path = `${groupId.replaceAll('.', '/')}/${artifactId}/maven-metadata.xml`;
-    const repoClean = repo.endsWith('/') ? repo : `${repo}/`;
-    const url = new URL(path, repoClean);
-    core.debug(`Try to fetch request to ${url.toString()}`);
-    const resp = await fetch(url);
-    if (!resp.ok)
-        throw new Error(`Not 2xx status code: ${resp.status}`);
-    const text = await resp.text();
-    const xml = MAVEN_META_PARSER.parse(text);
-    let versions = xml.metadata?.versioning?.versions?.version;
-    if (isString(versions)) {
-        versions = [versions];
-    }
-    else if (Array.isArray(versions)) {
-        for (const version of versions) {
-            if (!isString(version)) {
-                throw new Error('Some version is not a string');
-            }
-        }
-    }
-    else {
-        throw new Error('Could not find versions');
-    }
-    return { versions: versions };
-}
-
-// EXTERNAL MODULE: ./node_modules/properties-parser/index.js
-var properties_parser = __nccwpck_require__(4414);
-// EXTERNAL MODULE: ./node_modules/yaml/dist/index.js
-var dist = __nccwpck_require__(4083);
-;// CONCATENATED MODULE: ./node_modules/escape-string-regexp/index.js
-function escapeStringRegexp(string) {
-	if (typeof string !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	// Escape characters with special meaning either inside or outside character sets.
-	// Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
-	return string
-		.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-		.replace(/-/g, '\\x2d');
-}
-
-;// CONCATENATED MODULE: external "timers/promises"
-const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("timers/promises");
-;// CONCATENATED MODULE: ./src/main.ts
-
-
-
-
-
-
-
-
-const PROPERTIES_FILE = 'gradle.properties';
-const MINECRAFT_VERSION_KEY = 'minecraft_version';
-const CONFIG_FILENAME = 'modding-dependencies.yml';
-const CONFIG_PATH = `.github/${CONFIG_FILENAME}`;
-/**
- * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
- */
-async function run() {
-    try {
-        const properties = properties_parser.createEditor(PROPERTIES_FILE);
-        const currMcVersionStr = properties.get(MINECRAFT_VERSION_KEY);
-        if (currMcVersionStr === undefined)
-            throw Error(`${MINECRAFT_VERSION_KEY} is not found in ${PROPERTIES_FILE}`);
-        const currMcVersion = McVersion.fromString(currMcVersionStr);
-        const githubVars = new GitHubVariables();
-        let targetMcVersion = currMcVersion;
-        let newerMcVersion = false;
-        if (githubVars.updateMcPatch) {
-            const mcVersions = await fetchLatestMcVersions();
-            const latestMcPatch = mcVersions.get(currMcVersion.minor);
-            targetMcVersion = new McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch);
-            newerMcVersion = targetMcVersion.compare(currMcVersion) > 0;
-            if (newerMcVersion) {
-                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()}`);
-                properties.set(MINECRAFT_VERSION_KEY, targetMcVersion.toString());
-            }
-            else {
-                core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()} (no change)`);
-            }
-        }
-        else {
-            core.info(`Skip updating ${MINECRAFT_VERSION_KEY}`);
-        }
-        const needUpdateDep = !githubVars.updateOnlyWithMc || newerMcVersion;
-        let updatedVariables = 0;
-        let totalVariables = 0;
-        if (needUpdateDep) {
-            const configs = await readUpdateConfigs(properties);
-            const tasks = [];
-            for (const config of configs) {
-                const task = async () => {
-                    try {
-                        const version = await fetchUpdate(config, targetMcVersion);
-                        if (version !== undefined)
-                            return version;
-                    }
-                    finally { /* ignore */ }
-                    if (githubVars.tolerable)
-                        return undefined;
-                    // the error that actually get logged
-                    throw new Error('Fail fast in finding version');
-                };
-                tasks.push(task());
-            }
-            const results = await Promise.all(tasks);
-            for (let i = 0; i < results.length; ++i) {
-                const result = results[i];
-                if (result === undefined)
-                    continue;
-                const config = configs[i];
-                for (const variable of config.variables) {
-                    const [name, source] = Object.entries(variable)[0];
-                    const oldVal = properties.get(name);
-                    const newVal = result[source];
-                    if (oldVal !== newVal) {
-                        properties.set(name, newVal);
-                        ++updatedVariables;
-                        core.info(`${name}: ${oldVal} => ${newVal}`);
-                    }
-                    else {
-                        core.info(`${name}: ${oldVal} => ${newVal} (no change)`);
-                    }
-                    ++totalVariables;
-                }
-            }
-        }
-        properties.save();
-        core.info(`${updatedVariables}/${totalVariables} dependencies updated`);
-        githubVars.setAnyUpdate(updatedVariables > 0);
-    }
-    catch (error) {
-        if (error instanceof Error)
-            core.setFailed(error.message);
-    }
-}
-/**
- * @returns string of best matching version,
- *  or undefined if matching version exist
- */
-async function fetchUpdate(config, targetMcVersion) {
-    // assume that Minecraft has a very limited number of patches per minor version
-    for (let mcPatch = targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
-        if (mcPatch !== targetMcVersion.patch)
-            await (0,promises_namespaceObject.setTimeout)(1000);
-        const context = {
-            mcVersion: new McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch)
-        };
-        const artifactId = parsePattern(config.artifactId, context, false, false).result;
-        let versions;
-        try {
-            const meta = await fetchMavenMeta(config.repository, config.groupId, artifactId);
-            versions = meta.versions;
-        }
-        catch (error) {
-            core.debug(`Trial failed for ${config.groupId}:${artifactId} in ${config.repository}`);
-            continue;
-        }
-        const { result: versionPattern, extractionTypes } = parsePattern(config.version, { mcVersion: targetMcVersion }, true, true);
-        const versionRegex = new RegExp(`^${versionPattern}$`);
-        let bestVersion;
-        let bestExtraction;
-        for (const versionStr of versions) {
-            const matchResult = versionStr.match(versionRegex);
-            if (matchResult === null)
-                continue;
-            if (matchResult.length - 1 !== extractionTypes.length)
-                throw new Error('Length of match result does not match expectation');
-            const extraction = matchResult.slice(1);
-            if (bestExtraction === undefined
-                || compareExtraction(extraction, bestExtraction, extractionTypes) >= 0) {
-                bestExtraction = extraction;
-                bestVersion = versionStr;
-            }
-        }
-        if (bestVersion === undefined || bestExtraction === undefined)
-            continue;
-        core.info(`The best matching version is ${bestVersion} for ${config.groupId}:${artifactId} in ${config.repository}`);
-        return { artifactId: artifactId, version: bestVersion };
-    }
-    core.info(`No matching version is found for ${config.groupId}:${config.artifactId} in ${config.repository}`);
-    return undefined;
-}
-/**
- * Lengths of three arguments must match
- */
-function compareExtraction(x, y, types) {
-    for (let i = 0; i < x.length; ++i) {
-        let cmp;
-        switch (types[i]) {
-            case '#':
-                cmp = parseInt(x[i]) - parseInt(y[i]);
-                break;
-            case '*':
-                cmp = 0;
-                break;
-        }
-        if (Number.isNaN(cmp))
-            throw new Error('Illegal compare result, possibily a bug in pattern matching');
-        if (cmp !== 0)
-            return cmp;
-    }
-    return 0;
-}
-function parsePattern(pattern, context, allowWildcard, escapeForRegex) {
-    if (pattern.length === 0)
-        return { result: '', extractionTypes: [] };
-    let constructed = '';
-    const extractionType = [];
-    const replacer = (varName) => {
-        switch (varName) {
-            case 'mcMajor': return context.mcVersion.major.toString();
-            case 'mcMinor': return context.mcVersion.minor.toString();
-            case 'mcPatch': return context.mcVersion.patch.toString();
-            case 'mcVersion': return context.mcVersion.toString(false);
-            case 'mcVersionFull': return context.mcVersion.toString(true);
-            default: throw new Error(`Invalid variable ${varName}`);
-        }
-    };
-    // const varFilled = pattern.replaceAll(/\${[^{}]+}/, match => replacer(match.slice(2, -1)))
-    // This allows more flexibility if we want to add more patterns,
-    // as all patterns are processed in one-go
-    let start = 0;
-    let i = 0;
-    do {
-        let replaced;
-        const end = i;
-        let isWildcard = false;
-        switch (pattern[i]) {
-            case '#':
-                replaced = '(\\d+)';
-                extractionType.push('#');
-                isWildcard = true;
-                ++i;
-                break;
-            case '*':
-                replaced = '(.*?)';
-                extractionType.push('*');
-                isWildcard = true;
-                ++i;
-                break;
-            case '$': {
-                ++i;
-                if (i < pattern.length && pattern[i] !== '{')
-                    break;
-                let right = i + 1;
-                while (right < pattern.length && pattern[right] !== '}')
-                    ++right;
-                if (right >= pattern.length)
-                    throw new Error('No right bracket is found');
-                // i + 1 <= right < pattern.length
-                replaced = replacer(pattern.slice(i + 1, right));
-                if (escapeForRegex)
-                    replaced = escapeStringRegexp(replaced);
-                i = right + 1;
-                break;
-            }
-            default:
-                ++i;
-                break;
-        }
-        if (isWildcard && !allowWildcard)
-            throw new Error('Wildcard is only allowed in version');
-        if (replaced !== undefined) {
-            // start <= end < pattern.length
-            if (end > start) {
-                let part = pattern.slice(start, end);
-                if (escapeForRegex)
-                    part = escapeStringRegexp(part);
-                constructed += part;
-            }
-            start = i;
-            constructed += replaced;
-        }
-    } while (i < pattern.length);
-    if (start < pattern.length) {
-        let part = pattern.slice(start);
-        if (escapeForRegex)
-            part = escapeStringRegexp(part);
-        constructed += part;
-    }
-    return { result: constructed, extractionTypes: extractionType };
-}
-async function readUpdateConfigs(properties) {
-    const configs = [];
-    const configFile = await external_fs_.promises.readFile(CONFIG_PATH);
-    const configYml = dist/* parse */.Qc(configFile.toString());
-    if (!Array.isArray(configYml))
-        throw new Error('Configuration must be an array');
-    for (const entry of configYml) {
-        const repository = entry['repository'];
-        const groupId = entry['groupId'];
-        const artifactId = entry['artifactId'];
-        const version = entry['version'];
-        const variables = entry['variables'];
-        if (!isString(repository))
-            throw new Error('repository must be a string');
-        if (!isString(groupId))
-            throw new Error('groupId must be a string');
-        if (!isString(artifactId))
-            throw new Error('artifactId must be a string');
-        if (!isString(version))
-            throw new Error('version must be a string');
-        if (!Array.isArray(variables))
-            throw new Error('variables must be an array');
-        for (const variable of variables) {
-            const content = Object.entries(variable);
-            if (content.length !== 1 || !isString(content[0][0])
-                || content[0][1] !== 'version' && content[0][1] !== 'artifactId') {
-                throw new Error('Each entry in variables must be a mapping from a name to either version or artifactId');
-            }
-            const variableName = content[0][0];
-            if (properties.get(variableName) === undefined) {
-                throw new Error(`Configured variable ${variableName} does not exist in ${PROPERTIES_FILE}`);
-            }
-        }
-        configs.push({ repository, groupId, artifactId, version, variables });
-    }
-    return configs;
-}
-
-;// CONCATENATED MODULE: ./src/index.ts
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
  * The entrypoint for the action.
  */
-
+const main_1 = __nccwpck_require__(399);
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-run();
+(0, main_1.run)();
 
 })();
 
+module.exports = __webpack_exports__;
+/******/ })()
+;

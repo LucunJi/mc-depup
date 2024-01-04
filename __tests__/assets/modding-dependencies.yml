@@ -1,0 +1,64 @@
+# Yarn Mapping
+# - repository: https://maven.fabricmc.net
+#   groupId: net.fabricmc
+#   artifactId: yarn
+#   version: "${mcVersion}+build.#"
+#   variables:
+#     - yarn_mappings: version
+# Fabric Loader
+- repository: https://maven.fabricmc.net
+  groupId: net.fabricmc
+  artifactId: fabric-loader
+  version: "#.#.#"
+  variables:
+    - loader_version: version
+# Fabric API
+- repository: https://maven.fabricmc.net
+  groupId: net.fabricmc.fabric-api
+  artifactId: fabric-api
+  version: "#.#.#+${mcVersion}"
+  variables:
+    - fabric_version: version
+
+# # NeoForge
+# - repository: https://maven.neoforged.net/releases
+#   groupId: net.neoforged
+#   artifactId: neoforge
+#   version: "${mcMinor}.${mcPatch}.#"
+#   variables:
+#     - neo_version: version
+#
+# # Forge
+# - repository: https://maven.minecraftforge.net/
+#   groupId: net.minecraftforge
+#   artifactId: forge
+#   version: "${mcVersion}-#.#.#"
+#   variables:
+#     - neo_version: version
+
+# Mod Menu
+- repository: https://api.modrinth.com/maven
+  groupId: maven.modrinth
+  artifactId: modmenu
+  version: "9.#.#"
+  variables:
+    - mod_menu_version: version
+
+# malilib
+- repository: https://masa.dy.fi/maven
+  groupId: fi.dy.masa.malilib
+  artifactId: malilib-fabric-${mcMajor}.${mcMinor}.${mcPatch}
+  version: "#.#.#"
+  variables:
+    - malilib_artifact: artifactId
+    - malilib_version: version
+
+# # GeckoLib (Fabric)
+# - repository: https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/
+#   groupId: software.bernie.geckolib
+#   artifactId: geckolib-fabric-${mcVersion}
+#   version: "#.#.#"
+#   variables:
+#     - geckolib_artifact: artifactId
+#     - geckolib_version: version
+#

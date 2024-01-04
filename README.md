@@ -1,11 +1,13 @@
 # MC-DepUp
 
-Let's dep-up your mods! It automatically update the dependencies whenever a new minecraft version is released
+Let's dep-up your mods! It automatically updates the dependencies whenever a new minecraft version is released
 
 ---
 
-MC-DepUp (abbr. for Minecraft dependencies Updater)
+MC-DepUp (abbr. for Minecraft Dependencies Updater)
 updates the `gradle.properties` file according to your settings in `.github/modding-dependencies.yml`
+
+It can work well with Minecraft projects, while Dependabot doesn't -- how can Dependabot handle both Minecraft version and dependency version?
 
 It does not make new builds on its own.
 You can use more steps in your actions to make builds.
@@ -72,7 +74,7 @@ Variables are used to make the versions of dependencies match the version of Min
 For **both `artifactId` and `version`**, you can use variables.
 
 The variable names are enclosed in `${}`,
-and they are and expanded into the actual value when matching.
+and they are expanded into the actual value when matching.
 For example, `${mcVersionFull}` can match `1.20.2` when the Minecraft version is `1.20.2`.
 
 Here is a list of variables:
@@ -86,21 +88,21 @@ Here is a list of variables:
 
 #### Wildcards
 There is hardly any versioning convention that all Minecraft modders follow,
-so patter-matching can come handy.
+so wildcards can come handy.
 
 ***Wildcards can only be used for versions.***
 
-Here is a list of wildcards
+Here is a list of wildcards:
 
-- `#`: matches one or more numbers, such as `123` or `0123`, as many as possible (greedy). It' the same as `(\d+)` in regex.
-- `*`: matches zero, one or more of any characters, such as `-alpha.1+build.2` or an empty string, as few as possible (non-greedy). It equals to `(.*?)` in regex.
+- `#`: matches one or more numbers, such as `123` or `0123`, but not `-123` or `12.3`. It matches as many as possible (greedy). It's the same as `(\d+)` in regex.
+- `*`: matches zero, one or more of any characters, such as `-alpha.1+build.2` or an empty string. It matches as few as possible (non-greedy). It equals to `(.*?)` in regex.
 
 Note the greediness: when the version `*#` tries to match `alpha12`, the wildcard `#` matches `12`,
 because the least that `*` can match while still finishing the entire matching is `alpha`.
 
 
 #### Trials and ordering
-Sometimes, there is no need to make a dependency as often as Minecraft,
+Sometimes, there is no need to update a dependency as often as Minecraft,
 especially when only the patch version increases.
 
 For each dependency,
