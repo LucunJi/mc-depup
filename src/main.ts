@@ -49,13 +49,13 @@ export async function run(): Promise<void> {
         let totalVariables = 0
         if (needUpdateDep) {
             const configs = await readUpdateConfigs(properties)
-            const tasks: ReturnType<typeof fetchUpdate>[] = []
+            const tasks: Promise<ReturnType<typeof fetchUpdate>>[] = []
             for (const config of configs) {
-                const task = async () => {
+                const task = async (): Promise<ReturnType<typeof fetchUpdate>> => {
                     try {
                         const version = await fetchUpdate(config, targetMcVersion)
                         if (version !== undefined) return version
-                    } catch (ignored) { }
+                    } finally { /* ignore */ }
                     if (githubVars.tolerable)
                         return undefined
                     // the error that actually get logged
@@ -164,10 +164,10 @@ async function fetchUpdate(config: UpdateConfigEntry, targetMcVersion: McVersion
  */
 function compareExtraction(x: string[], y: string[], types: ExtractionType[]): number {
     for (let i = 0; i < x.length; ++i) {
-        let cmp: number;
+        let cmp: number
         switch (types[i]) {
             case '#': cmp = parseInt(x[i]) - parseInt(y[i]); break
-            case '*': cmp = 0; break;
+            case '*': cmp = 0; break
         }
         if (Number.isNaN(cmp))
             throw new Error('Illegal compare result, possibily a bug in pattern matching')
@@ -180,12 +180,12 @@ function compareExtraction(x: string[], y: string[], types: ExtractionType[]): n
 
 type ExtractionType = '#' | '*'
 function parsePattern(pattern: string, context: { mcVersion: McVersion }, allowWildcard: boolean, escapeForRegex: boolean): { result: string, extractionTypes: ExtractionType[] } {
-    if (pattern.length == 0)
+    if (pattern.length === 0)
         return { result: '', extractionTypes: [] }
 
     let constructed = ''
-    let extractionType: ExtractionType[] = []
-    const replacer = (varName: string) => {
+    const extractionType: ExtractionType[] = []
+    const replacer = (varName: string): string => {
         switch (varName) {
             case 'mcMajor': return context.mcVersion.major.toString()
             case 'mcMinor': return context.mcVersion.minor.toString()

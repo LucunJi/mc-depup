@@ -45,7 +45,7 @@ export class McVersion {
     }
 }
 
-export function isString<T>(x: T): T extends (string | String) ? true : false {
+export function isString<T>(x: T): T extends string ? true : false {
     const ret =  (typeof x === 'string') || (x instanceof String)
-    return ret as T extends (string | String) ? true : false 
+    return ret as T extends string ? true : false 
 }

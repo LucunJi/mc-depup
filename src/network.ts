@@ -28,7 +28,7 @@ const MAVEN_META_PARSER = new XMLParser()
  */
 export async function fetchMavenMeta(repo: string, groupId: string, artifactId: string): Promise<{ versions: string[] }> {
     const path = `${groupId.replaceAll('.', '/')}/${artifactId}/maven-metadata.xml`
-    const repoClean = repo[repo.length - 1] === '/' ? repo : `${repo}/`
+    const repoClean = repo.endsWith('/') ? repo : `${repo}/`
     const url = new URL(path, repoClean)
     core.debug(`Try to fetch request to ${url.toString()}`)
     const resp = await fetch(url)

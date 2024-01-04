@@ -13785,7 +13785,7 @@ const MAVEN_META_PARSER = new fxp.XMLParser();
  */
 async function fetchMavenMeta(repo, groupId, artifactId) {
     const path = `${groupId.replaceAll('.', '/')}/${artifactId}/maven-metadata.xml`;
-    const repoClean = repo[repo.length - 1] === '/' ? repo : `${repo}/`;
+    const repoClean = repo.endsWith('/') ? repo : `${repo}/`;
     const url = new URL(path, repoClean);
     core.debug(`Try to fetch request to ${url.toString()}`);
     const resp = await fetch(url);
@@ -13885,7 +13885,7 @@ async function run() {
                         if (version !== undefined)
                             return version;
                     }
-                    catch (ignored) { }
+                    finally { /* ignore */ }
                     if (githubVars.tolerable)
                         return undefined;
                     // the error that actually get logged
@@ -13993,10 +13993,10 @@ function compareExtraction(x, y, types) {
     return 0;
 }
 function parsePattern(pattern, context, allowWildcard, escapeForRegex) {
-    if (pattern.length == 0)
+    if (pattern.length === 0)
         return { result: '', extractionTypes: [] };
     let constructed = '';
-    let extractionType = [];
+    const extractionType = [];
     const replacer = (varName) => {
         switch (varName) {
             case 'mcMajor': return context.mcVersion.major.toString();
@@ -14024,7 +14024,7 @@ function parsePattern(pattern, context, allowWildcard, escapeForRegex) {
                 ++i;
                 break;
             case '*':
-                replaced = '(.*)';
+                replaced = '(.*?)';
                 extractionType.push('*');
                 isWildcard = true;
                 ++i;

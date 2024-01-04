@@ -36,6 +36,8 @@ extends:
 
 rules:
   {
+    'object-shorthand': ['error', 'consistent'],
+    'import/no-unresolved': 'off',  # false-positives for ncc bundler when importing relative path with .js suffix using module package type and ncc bundler
     'camelcase': 'off',
     'eslint-comments/no-use': 'off',
     'eslint-comments/no-unused-disable': 'off',
