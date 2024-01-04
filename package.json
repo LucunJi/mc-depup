@@ -1,21 +1,25 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
-  "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "name": "mc-depup",
+  "description": "Let's dep-up your mods! It automatically update the dependencies whenever a new minecraft version is released",
+  "version": "0.0.1",
+  "author": "LucunJi",
+  "private": false,
+  "homepage": "https://github.com/LucunJi/mc-depup",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/LucunJi/mc-depup.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/LucunJi/mc-depup/issues"
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "github",
+    "minecraft",
+    "gradle",
+    "modding",
+    "update",
+    "dependency"
   ],
   "type": "module",
   "exports": {

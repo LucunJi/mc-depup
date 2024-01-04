@@ -1,5 +1,5 @@
-name: 'Minecraft Modding Updater'
-description: 'Automatically update the dependencies whenever a new minecraft version is released'
+name: 'MC-DepUp'
+description: "Let's dep-up your mods! It automatically update the dependencies whenever a new minecraft version is released"
 author: 'LucunJi'
 
 branding:
