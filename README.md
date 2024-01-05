@@ -29,6 +29,7 @@ you may build and use it locally using instructions from [How to develop and run
          - [Wildcards](#wildcards)
          - [Trials and ordering](#trials-and-ordering)
    * [How to develop and run locally](#how-to-develop-and-run-locally)
+   * [Sample workflow](#sample-workflow)
    * [Sample settings](#sample-settings)
       + [Fabric and Fabric API](#fabric-and-fabric-api)
       + [NeoForge](#neoforge)
@@ -41,7 +42,7 @@ you may build and use it locally using instructions from [How to develop and run
 
 
 ### TL;DR
-Go find some examples in [Sample settings](#sample-settings),
+Go find some examples in [Sample workflow](#sample-workflow) and [Sample settings](#sample-settings),
 you can learn most of it by reading the examples.
 
 
@@ -142,6 +143,85 @@ For developers, also see:
 
 - [Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
 for versioning of GitHub Actions.
+
+
+## Sample workflow
+
+Here is a simple sample workflow that performs the following tasks
+
+1. update `gradle.properties`
+2. when any of the dependencies get updated:
+    1. build mod using the updated dependencies
+    2. make a pull request ([you need to provide a token for this](https://github.com/marketplace/actions/create-pull-request#action-inputs))
+
+Copy and modify it (be sure to read the comments) to use in your repository.
+
+<details>
+<summary>click to expand/fold</summary>
+
+``` yaml
+name: Update Dependencies
+on:
+  schedule:
+    - cron: '12 14 * * 5'  # minute and hour are randomized to avoid peak hours
+  workflow_dispatch:  # enables manual running of this workflow
+
+env:
+  JAVA_VERSION: 17 # must be the same as the version used in build.gradle
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Dependencies
+        id: depup
+        uses: LucunJi/mc-depup@v0.0.1
+        with:
+          update_mc_patch: true
+          update_only_with_mc: false
+          tolerable: false
+
+      # #   send file to other jobs using outputs when it is less than 50MB
+      # #   so we don't need to repeat 'if' in each step
+      # #   you can also use workflow artifacts to achieve the same effect
+      # - name: Send Properties
+      #   id: send_properties
+      #   run: |
+      #     properties="$(cat gradle.properties)"
+      #     properties_escaped="${properties//$'\n'/\\n}"
+      #     properties_escaped="${properties_escaped//$'\r'/\\r}"
+      #     echo "properties=$properties_escaped" >> "$GITHUB_OUTPUT"
+  
+      - name: Setup Java
+        if: ${{ steps.depup.outputs.any_update == 'true' }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Build
+        if: ${{ steps.depup.outputs.any_update == 'true' }}
+        id: build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build
+      
+      # see: https://github.com/marketplace/actions/create-pull-request
+      - name: Pull Request
+        if: ${{ steps.depup.outputs.any_update == 'true' }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.PR_BOT_PAT  }}  # replace this with your token
+          add-paths: gradle.properties
+          commit-message: Update dependencies
+          title: Update dependencies
+          branch: automated/update-dependencies
+```
+</details>
+
 
 ## Sample settings
 
