@@ -1,6 +1,6 @@
 # MC-DepUp
 
-Let's dep-up your mods! It automatically updates the dependencies whenever a new minecraft version is released
+Let's dep-up your mods! It automatically updates Minecraft version and dependencies in your `gradle.properties`
 
 ---
 

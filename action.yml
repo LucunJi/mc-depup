@@ -1,5 +1,5 @@
 name: 'MC-DepUp'
-description: "Let's dep-up your mods! It automatically update the dependencies whenever a new minecraft version is released"
+description: "Let's dep-up your mods! It automatically updates Minecraft version and dependencies in your gradle.properties"
 author: 'LucunJi'
 
 branding:
