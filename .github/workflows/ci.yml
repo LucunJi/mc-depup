@@ -51,12 +51,20 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Setup Environment
+        id: setup-env
+        run: |
+          cp './__tests__/assets/gradle.properties' './'
+          cp './__tests__/assets/modding-dependencies.yml' './.github/'
+
       - name: Test Local Action
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          update_mc_patch: true
+          update_only_with_mc: false
+          tolerable: false
 
       - name: Print Output
         id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+        run: echo "${{ steps.test-action.outputs.any_update }}"
