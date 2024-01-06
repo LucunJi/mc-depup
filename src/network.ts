@@ -20,7 +20,21 @@ export async function fetchLatestMcVersions(): Promise<Map<number, number>> {
     return latest
 }
 
-const MAVEN_META_PARSER = new XMLParser()
+const MAVEN_META_PARSER = new XMLParser({
+    numberParseOptions: {  // don't parse versions like *.*
+        hex: false,
+        leadingZeros: false,
+        skipLike: /.*/
+    },
+    isArray: (_: string, jpath: string): boolean => {  // versions should always be a list
+        switch (jpath) {
+            case 'metadata.versioning.versions.version':
+                return true
+            default:
+                return false
+        }
+    }
+})
 
 /**
  * Returns a list of versions from A Level Metadata
@@ -36,15 +50,11 @@ export async function fetchMavenMeta(repo: string, groupId: string, artifactId: 
         throw new Error(`Not 2xx status code: ${resp.status}`)
     const text = await resp.text()
     const xml = MAVEN_META_PARSER.parse(text)
-    let versions = xml.metadata?.versioning?.versions?.version
-    if (isString(versions)) {
-        versions = [versions]
-    } else if (Array.isArray(versions)) {
-        for (const version of versions) {
-            if (!isString(version)) {
-                throw new Error('Some version is not a string')
-            }
-        }
+    const versions = xml.metadata?.versioning?.versions?.version
+    console.log(versions)
+    if (Array.isArray(versions)) {
+        for (const version of versions) if (!isString(version))
+            throw new Error('Some version is not a string')
     } else {
         throw new Error('Could not find versions')
     }

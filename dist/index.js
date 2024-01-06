@@ -5649,7 +5649,21 @@ async function fetchLatestMcVersions() {
     return latest;
 }
 exports.fetchLatestMcVersions = fetchLatestMcVersions;
-const MAVEN_META_PARSER = new fast_xml_parser_1.XMLParser();
+const MAVEN_META_PARSER = new fast_xml_parser_1.XMLParser({
+    numberParseOptions: {
+        hex: false,
+        leadingZeros: false,
+        skipLike: /.*/
+    },
+    isArray: (_, jpath) => {
+        switch (jpath) {
+            case 'metadata.versioning.versions.version':
+                return true;
+            default:
+                return false;
+        }
+    }
+});
 /**
  * Returns a list of versions from A Level Metadata
  * See https://maven.apache.org/repositories/metadata.html#the-a-level-metadata
@@ -5664,16 +5678,12 @@ async function fetchMavenMeta(repo, groupId, artifactId) {
         throw new Error(`Not 2xx status code: ${resp.status}`);
     const text = await resp.text();
     const xml = MAVEN_META_PARSER.parse(text);
-    let versions = xml.metadata?.versioning?.versions?.version;
-    if ((0, utils_1.isString)(versions)) {
-        versions = [versions];
-    }
-    else if (Array.isArray(versions)) {
-        for (const version of versions) {
-            if (!(0, utils_1.isString)(version)) {
+    const versions = xml.metadata?.versioning?.versions?.version;
+    console.log(versions);
+    if (Array.isArray(versions)) {
+        for (const version of versions)
+            if (!(0, utils_1.isString)(version))
                 throw new Error('Some version is not a string');
-            }
-        }
     }
     else {
         throw new Error('Could not find versions');
