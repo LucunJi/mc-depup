@@ -4,10 +4,12 @@ Let's dep-up your mods! It automatically updates Minecraft version and dependenc
 
 ---
 
+***MC-DepUp is currently under heavy develop, ANY FEATURE IS SUBJECT TO CHANGE***
+
 MC-DepUp (abbr. for Minecraft Dependencies Updater)
 updates the `gradle.properties` file according to your settings in `.github/modding-dependencies.yml`
 
-It can work well with Minecraft projects, while Dependabot doesn't -- how can Dependabot handle both Minecraft version and dependency version?
+It can work well with Minecraft projects, while other updaters (e.g. Dependabot, Renovate) doesn't -- how can any general updater handle both Minecraft version and dependency version?
 
 It does not make new builds on its own.
 You can use more steps in your actions to make builds.
@@ -15,7 +17,6 @@ Possible following steps are build, commit, push and make pull request.
 
 For a list of inputs and outputs, see [action.yml](action.yml)
 
-***MC-DepUp is currently under heavy develop***,
 you may build and use it locally using instructions from [How to develop and run locally](#how-to-develop-and-run-locally).
 
 ## Table of contents
