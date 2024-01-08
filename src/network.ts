@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import { XMLParser } from 'fast-xml-parser'
-import { McVersion, isString } from './utils'
+import { isString } from './utils'
+import { McVersion } from './version'
 
 const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json'
 

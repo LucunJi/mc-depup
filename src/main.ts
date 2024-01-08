@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import { fetchLatestMcVersions, fetchMavenMeta } from "./network"
-import { GitHubVariables, McVersion, isString } from "./utils"
-import * as dependencySettings from './dependency'
-import { Dependency } from './dependency'
+import { GitHubVariables, isString } from "./utils"
+import { McVersion, DependencyVersion } from './version'
+import { Dependency, DependencySettings } from './dependency'
 import * as prop from "properties-parser"
 import { setTimeout } from "timers/promises"
 
@@ -18,7 +18,7 @@ export async function run(): Promise<void> {
     try {
         const properties = prop.createEditor(PROPERTIES_FILE)
         const githubVars = new GitHubVariables()
-        const depSettings = await dependencySettings.readFromFile(CONFIG_FILEPATH)
+        const depSettings = await DependencySettings.readFromFile(CONFIG_FILEPATH)
 
         const currMcVersionStr = properties.get(MINECRAFT_VERSION_KEY)
         if (currMcVersionStr === undefined)
@@ -120,27 +120,29 @@ async function fetchUpdate(dependency: Dependency, targetMcVersion: McVersion):
             continue  // next trial
         }
 
-        let bestVersion: string | undefined
-        let bestExtraction: string[] | undefined
+        let bestVersionStr: string | undefined
+        let bestVersion: DependencyVersion | undefined
+        let bestCaptures: string[] | undefined
         for (const versionStr of versions) {
             const matchResult = versionStr.match(contextualized.version)
 
-            if (matchResult === null)
-                continue  // ignore unmatched
+            if (matchResult === null) continue  // ignore unmatched versions
 
-            const extraction = matchResult.slice(1)
-            if (bestExtraction === undefined
-                || dependency.compareVersionCaptures(extraction, bestExtraction) >= 0) {
-                bestExtraction = extraction
-                bestVersion = versionStr
+            const captures = matchResult.slice(1)
+            const parsedVersion = dependency.capturesToVersion(captures)
+
+            if (bestVersion === undefined || parsedVersion.compare(bestVersion) >= 0) {
+                bestVersionStr = versionStr
+                bestVersion = parsedVersion
+                bestCaptures = captures
             }
         }
 
-        if (bestVersion === undefined || bestExtraction === undefined)
+        if (bestVersionStr === undefined || bestCaptures === undefined)
             continue
 
-        core.info(`The best matching version is ${bestVersion} for ${dependency.groupId}:${artifactId} in ${dependency.repository}`)
-        return { artifactId: artifactId, version: bestVersion }
+        core.info(`The best matching version is ${bestVersionStr} for ${dependency.groupId}:${artifactId} in ${dependency.repository}`)
+        return { artifactId: artifactId, version: bestVersionStr }
     }
 
     throw new Error(`No matching version is found for ${dependency.groupId}:${dependency.artifactId} in ${dependency.repository}`)

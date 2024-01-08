@@ -1,10 +1,12 @@
+/**
+ * Manages dependency configuration
+ */
+
 import * as yml from 'yaml'
 import { promises as fs } from 'fs'
-import { isString, McVersion } from './utils'
+import { isString } from './utils'
+import { McVersion, DependencyVersion } from './version'
 import escapeStringRegexp from "escape-string-regexp"
-import * as compareVersions from 'compare-versions'
-
-import * as core from '@actions/core'
 
 
 // variable
@@ -12,19 +14,19 @@ export type Variable = {
     name: string
     source: 'version'
     | 'artifactId'
-    | 'semver'      // default option
+    | 'named_wildcard'      // default option
 }
 const VALID_VARIABLE_SOURCES: Variable['source'][] = [
-    'version', 'artifactId', 'semver'
+    'version', 'artifactId', 'named_wildcard'
 ]
 export type VariableContext = {
     mcVersion: McVersion
 }
 function variableExpander(name: string): ((ctx: VariableContext) => string) | undefined {
     switch (name) {
-        case 'minecraft_version': return (ctx: VariableContext): string => ctx.mcVersion.toString(false);
+        case 'minecraft_version': return (ctx: VariableContext): string => ctx.mcVersion.toString(false); // sugar for mcVersion
         case 'mcVersion': return (ctx: VariableContext): string => ctx.mcVersion.toString(false);
-        case 'mcVersionFull': return (ctx: VariableContext): string => ctx.mcVersion.toString(true);
+        case 'mcVersionFull': return (ctx: VariableContext): string => ctx.mcVersion.toString(true); // sugar for using major, minor and patch explicitly
         case 'mcMajor': return (ctx: VariableContext): string => ctx.mcVersion.major.toString();
         case 'mcMinor': return (ctx: VariableContext): string => ctx.mcVersion.minor.toString();
         case 'mcPatch': return (ctx: VariableContext): string => ctx.mcVersion.patch.toString();
@@ -39,14 +41,13 @@ export class PatternPart {
 
     constructor(
         readonly type: 'literal' // plain string
-            | 'variable'    // variable that are replaced with actual value in context
-            | 'semver'      // RegExp /(.*)/ and the captured is compared as a SemVer 
-            | '*'           // RegExp /(.*?)/ and the captured is not compared
-            | '#',           // deprecated, RegExp /(\d+)/ and the captured is compared numerically
+            | 'variable'    // variable that is replaced with actual value in context
+            | 'named_wildcard'      // RegExp /(.*)/ and the captured is compared as a SemVer 
+            | 'wildcard',           // RegExp /(.*)/ and the captured is compared as a SemVer 
         readonly value: string
     ) {
         switch (type) {
-            case 'semver': case '#':
+            case 'wildcard': case 'named_wildcard':
                 this.hasCaptureGroup = true
             default:
                 this.hasCaptureGroup = false
@@ -59,15 +60,15 @@ export class PatternPart {
     contextualize(context: VariableContext, escapeLiteralResult: boolean): string {
         let ret: string
         switch (this.type) {
-            case 'literal': ret = escapeStringRegexp(this.value); break
+            case 'literal': ret = this.value; break
             case 'variable': ret = variableExpander(this.value)!(context); break;
-            case 'semver': ret = '(.*)'; break
-            case '*': ret = '.*?'; break
-            case '#': ret = '(\\d+)'; break
+            case 'wildcard': case 'named_wildcard': ret = '(.*)'; break
         }
-        switch (this.type) {
-            case 'literal': case 'variable':
-                ret = escapeStringRegexp(ret)
+        if (escapeLiteralResult) {
+            switch (this.type) {
+                case 'literal': case 'variable':
+                    ret = escapeStringRegexp(ret)
+            }
         }
         return ret
     }
@@ -75,18 +76,18 @@ export class PatternPart {
 
 
 // DependencySettings
-export async function readFromFile(path: string): Promise<DependencySettings> {
-    const input = await fs.readFile(path)
-    const inputDecoded = input.toString()
-    const ret = new DependencySettings(inputDecoded)
-    return ret
-}
-
 export class DependencySettings {
     readonly dependencies: Dependency[]
 
     constructor(input: string) {
         this.dependencies = readDependencies(input)
+    }
+
+    static async readFromFile(path: string): Promise<DependencySettings> {
+        const input = await fs.readFile(path)
+        const inputDecoded = input.toString()
+        const ret = new DependencySettings(inputDecoded)
+        return ret
     }
 }
 
@@ -120,24 +121,20 @@ export class Dependency {
         )
     }
 
-    compareVersionCaptures(c1: string[], c2: string[]): number {
-        if (c1.length !== this.versionCaptureTypes.length || c2.length !== this.versionCaptureTypes.length)
-            throw new Error('Captured groups are not comparable: unmatched length')
+    capturesToVersion(captures: string[]): DependencyVersion {
+        if (captures.length !== this.versionCaptureTypes.length)
+            throw new Error('Unmatched number of captures')
 
-        for (let i = 0; i < c1.length; ++i) {
-            let cmp: number
+        let joined = ''
+        for (let i = 0; i < this.versionCaptureTypes.length; ++i) {
             switch (this.versionCaptureTypes[i]) {
-                case 'semver': cmp = compareVersions.compareVersions(c1[i], c2[i]); break
-                case '#': cmp = parseInt(c1[i]) - parseInt(c2[i]); break
-                default: cmp = 0; break
+                case 'wildcard': case 'named_wildcard':
+                    joined += '-'
+                    joined += captures[i]
+                    break
             }
-            if (Number.isNaN(cmp))
-                throw new Error('Illegal compare result, possibily a bug in pattern matching')
-            if (cmp !== 0)
-                return cmp
         }
-
-        return 0
+        return new DependencyVersion(joined)
     }
 }
 
@@ -152,25 +149,13 @@ export class ContextualizedDependency {
 }
 
 function bracketType(name: string): PatternPart['type'] {
-    return variableExpander(name) === undefined ? 'variable' : 'semver'
+    return variableExpander(name) === undefined ? 'variable' : 'named_wildcard'
 }
 
 function checkArtifactIdParts(artifactId: PatternPart[]) {
     for (const part of artifactId) {
         if (!(part.type === 'literal' || part.type === 'variable'))
-            throw new Error('artifactId cannot contain patterns other than literals or variables')
-    }
-}
-
-function checkVersionParts(version: PatternPart[]) {
-    let numericalCount = 0
-    for (const part of version) {
-        if (part.type === '#')
-            core.warning("The pattern '#' is deprecated and will be removed in the next pre-release; consider use the more powerful semver pattern")
-        if (part.type === 'semver' || part.type === '#')
-            ++numericalCount
-        if (numericalCount > 1)
-            throw new Error("version must contain zero or one '#' or SemVer pattern")
+            throw new Error('artifactId can only contain literals or variables')
     }
 }
 
@@ -200,14 +185,13 @@ function readDependencies(input: string): Dependency[] {
         if (!isString(version))
             throw new Error('version must be a string')
         const parsedVersion = parsePattern(version)
-        checkVersionParts(parsedVersion)
 
         const actualVariables = new Map<string, Variable>()
         for (const part of parsedVersion) {
-            if (part.type === 'semver') {
+            if (part.type === 'named_wildcard') {
                 actualVariables.set(part.value, {
                     name: part.value,
-                    source: 'semver'
+                    source: 'named_wildcard'
                 })
             }
         }
@@ -258,13 +242,8 @@ function parsePattern(pattern: string): PatternPart[] {
         const end = i
         let isWildcard = false
         switch (pattern[i]) {
-            case '#':
-                nonLiteralPart = new PatternPart('*', '')
-                isWildcard = true
-                ++i
-                break
             case '*':
-                nonLiteralPart = new PatternPart('*', '')
+                nonLiteralPart = new PatternPart('wildcard', '')
                 isWildcard = true
                 ++i
                 break
