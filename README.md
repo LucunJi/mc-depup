@@ -1,15 +1,15 @@
 # MC-DepUp
 
-Let's dep-up your mods! It automatically updates Minecraft version and dependencies in your `gradle.properties`
+Let's dep-up your mods! It automatically updates Minecraft version and dependencies in your modding project.
 
 ---
 
 ***MC-DepUp is currently under heavy develop, ANY FEATURE IS SUBJECT TO CHANGE***
 
 MC-DepUp (abbr. for Minecraft Dependencies Updater)
-updates the `gradle.properties` file according to your settings in `.github/modding-dependencies.yml`
+updates the dependencies of your modding project. *(currently limited to `gradle.properties`)*
 
-It can work well with Minecraft projects, while other updaters (e.g. Dependabot, Renovate) doesn't -- how can any general updater handle both Minecraft version and dependency version?
+It works well with Minecraft projects, while other updaters (e.g. Dependabot, Renovate) doesn't -- how can any general updater handle both Minecraft version and dependency version?
 
 It does not make new builds on its own.
 You can use more steps in your actions to make builds.
@@ -17,7 +17,7 @@ Possible following steps are build, commit, push and make pull request.
 
 For a list of inputs and outputs, see [action.yml](action.yml)
 
-you may build and use it locally using instructions from [How to develop and run locally](#how-to-develop-and-run-locally).
+You may also build and use it locally using instructions from [How to develop and run locally](#how-to-develop-and-run-locally).
 
 ## Table of contents
 
@@ -26,9 +26,7 @@ you may build and use it locally using instructions from [How to develop and run
    * [How it works and how to use it](#how-it-works-and-how-to-use-it)
       + [TL;DR](#tldr)
       + [I stuck on some bug / I want to learn more](#i-stuck-on-some-bug--i-want-to-learn-more)
-         - [Variables](#variables)
          - [Wildcards](#wildcards)
-         - [Trials and ordering](#trials-and-ordering)
    * [How to develop and run locally](#how-to-develop-and-run-locally)
    * [Sample workflow](#sample-workflow)
    * [Sample settings](#sample-settings)
@@ -51,77 +49,66 @@ you can learn most of it by reading the examples.
 I assume that you already know a bit about YAML.
 
 Otherwise, [this page](https://learnxinyminutes.com/docs/yaml/) and [this parser](http://www.yaml-online-parser.appspot.com/) should help.
-*For beginners, always put strings in double quotes.*
+*For beginners, always put strings in quotes.*
 
 The `modding-dependencies.yml` should contain multiple entries in this format,
 so they form a list:
 
 ``` yaml
-- repository: <string of maven repository>
-  groupId: <string of groupId>
-  artifactId: <string of artifactId>
-  version: <string of version>
-  variables: <list of key-value pairs, telling MC-DepUp how to update gradle.properties>
-    - <variable name in gradle.properties>: <the type of value it takes, either 'version' or 'artifactId'>
+- repository: <a string of maven repository>
+  groupId: <a string of groupId>
+  artifactId: <a tring (pattern) of artifactId>
+  version: <s string (pattern) of version>
+  properties: <a list telling MC-DepUp what project properties to update>
+    - <property name in gradle.properties>: <the source of its value>
 ```
 
-You also need to have `minecraft_version` in your `gradle.properties`
+You also need to have `minecraft_version` in your `gradle.properties`,
+so MC-DepUp knows the version of Minecraft that your project depends on.
 
 
-#### Variables
-Variables are used to make the versions of dependencies match the version of Minecraft.
+### Wildcards
 
-***Not to be confused with the variables in your `gradle.properties`***
+There's hardly any versioning convention that all Minecraft modders follow,
+that's a sad story for any general dependency manager.
 
-For **both `artifactId` and `version`**, you can use variables.
+Therefore, MC-DepUp's wildcards can come handy.
+You can have them in the pattern of `artifactID` and `version`.
 
-The variable names are enclosed in `${}`,
-and they are expanded into the actual value when matching.
-For example, `${mcVersionFull}` can match `1.20.2` when the Minecraft version is `1.20.2`.
+| Wildcard        | Matched Characters                                          |
+| --------------- | ----------------------------------------------------------- |
+| `*`             | Any number of any characters, equalvalent to RegEx `(.*)`. **Can't be use to match an artifactID**    |
+| `${mcMajor}`    | Major version of Minecraft, always `1`                      |
+| `${mcMinor}`    | Minor version of Minecraft, it's `20` in `1.20.1`           |
+| `${mcPatch}`    | Any non-negative number less than or equal to the patch version of Minecraft |
+| `${mcVersion}`  | Any Minecraft version with its patch no greater than the project's Minecraft version |
+| `${<any other name>}` | Same effect with `*`. In additon, the matched characters are also used to update project properties with the same name. **Can't be use to match an artifactID**    |
 
-Here is a list of variables:
+**Additional notes**:
 
-- `mcMajor`: the major version of Minecraft. For Minecraft `1.20.2`, it is `1`
-- `mcMinor`: the minor version of Minecraft. For Minecraft `1.20.2`, it is `20`
-- `mcPatch`: the patch version of Minecraft. For Minecraft `1.20.2`, it is `2`; for Minecraft `1.20`, it is `0`
-- `mcVersion`: the version of Minecraft, omitting patch version when it is 0. That's Mojang's style. For Minecraft `1.20.2`, it is `1.20.2`; for Minecraft `1.20`, it is `1.20`
-- `mcVersionFull`: the full version of Minecraft without omitting the patch version. For Minecraft `1.20.2`, it is `1.20.2`; for Minecraft `1.20`, it is `1.20.0`. It's the same as `${mcMajor}.${mcMinor}.${mcPatch}`.
+- For example, if a project's Minecraft version is `1.20.4`,
+  `${mcVersion}` matches in this order:
+  `1.20.4`, `1.20.3`, `1.20.2`, `1.20.1`, `1.20.0`, `1.20`
 
+    - Similarly, `${mc_patch}` matches in this order:
+      `4`, `3`, `2`, `1`, `0`.
+      It does not match the empty string.
 
-#### Wildcards
-There is hardly any versioning convention that all Minecraft modders follow,
-so wildcards can come handy.
+- Although they share similar formats,
+  `${mcMajor}, ${mcMinor}, ${mcPatch}, ${mcVersion}`
+  are not used to update project properties in the same way as `${<any other name>}`.
 
-***Wildcards can only be used for versions.***
+    - They hence have names in camelCase to distinguish from your project properties,
+      which are usually in snake_case.
 
-Here is a list of wildcards:
+**Notes for early-birds**:
 
-- `#`: matches one or more numbers, such as `123` or `0123`, but not `-123` or `12.3`. It matches as many as possible (greedy). It's the same as `(\d+)` in regex.
-- `*`: matches zero, one or more of any characters, such as `-alpha.1+build.2` or an empty string. It matches as few as possible (non-greedy). It equals to `(.*?)` in regex.
-
-Note the greediness: when the version `*#` tries to match `alpha12`, the wildcard `#` matches `12`,
-because the least that `*` can match while still finishing the entire matching is `alpha`.
-
-
-#### Trials and ordering
-Sometimes, there is no need to update a dependency as often as Minecraft,
-especially when only the patch version increases.
-
-For each dependency,
-MC-DepUp tries each patch version of Minecraft in decreasing order to expand the [Variables](#variables),
-and uses the first match to update `gradle.properties`.
-
-For multiple versions of a dependency that the same Minecraft version can match,
-the most recent version is chosen by comparing all numbers matched with `#` from left to right.
-
-For example, for the following list of a dependency's artifactId and versions
-1. artifactId: `bar-1.20.2`, version: `1.2.1`
-1. artifactId: `bar-1.20.2`, version: `1.1.17`
-1. artifactId: `bar-1.20.2`, version: `1.1.16`
-
-With the configuration artifactId: `bar-${mcVersionFull}`, version: `1.#.#`
-and Minecraft version `1.20.3`,
-MC-DepUp picks the artifactId `bar-1.20.2` and version `1.2.1`.
+- "Variables" used for matching is now renamed and classified as part of "wildcards".
+- `${mcVersionFull}` is removed and becomes part of `${mcVersion}`.
+- `#` is removed.
+- In future versions, wildcards with suffix `minecraft_version` or `mc_version` in their names
+  might match in the same way as `${mcVersion}`,
+  while they are also used to update properties.
 
 
 ## How to develop and run locally
@@ -139,12 +126,6 @@ For example, this updates the Minecraft version, then the dependencies
 ``` bash
 INPUT_UPDATE_MC_PATCH=true node dist/index.js
 ```
-
-For developers, also see:
-
-- [Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-for versioning of GitHub Actions.
-
 
 ## Sample workflow
 
