@@ -4,32 +4,36 @@
 
 import * as yml from 'yaml'
 import { promises as fs } from 'fs'
-import { isString } from './utils'
+import { typeOf } from './utils'
 import { McVersion, DependencyVersion } from './version'
 import escapeStringRegexp from "escape-string-regexp"
 
 
-// variable
-export type Variable = {
+export type Property = {
     name: string
     source: 'version'
     | 'artifactId'
-    | 'named_wildcard'      // default option
+    | 'wildcard'
+    wildcardName?: string
 }
-const VALID_VARIABLE_SOURCES: Variable['source'][] = [
-    'version', 'artifactId', 'named_wildcard'
+const VALID_PROPERTY_SOURCES: Property['source'][] = [
+    'version', 'artifactId', 'wildcard'
 ]
-export type VariableContext = {
+export type DependencyContext = {
     mcVersion: McVersion
+    omitMcPatch: boolean
 }
-function variableExpander(name: string): ((ctx: VariableContext) => string) | undefined {
+export function contextualWildcardExpander(name: string):
+    ((ctx: DependencyContext) => string) | undefined {
     switch (name) {
-        case 'minecraft_version': return (ctx: VariableContext): string => ctx.mcVersion.toString(false); // sugar for mcVersion
-        case 'mcVersion': return (ctx: VariableContext): string => ctx.mcVersion.toString(false);
-        case 'mcVersionFull': return (ctx: VariableContext): string => ctx.mcVersion.toString(true); // sugar for using major, minor and patch explicitly
-        case 'mcMajor': return (ctx: VariableContext): string => ctx.mcVersion.major.toString();
-        case 'mcMinor': return (ctx: VariableContext): string => ctx.mcVersion.minor.toString();
-        case 'mcPatch': return (ctx: VariableContext): string => ctx.mcVersion.patch.toString();
+        case 'mcVersion': return (ctx: DependencyContext):
+            string => ctx.mcVersion.toString(!ctx.omitMcPatch)
+        case 'mcMajor': return (ctx: DependencyContext):
+            string => ctx.mcVersion.major.toString()
+        case 'mcMinor': return (ctx: DependencyContext):
+            string => ctx.mcVersion.minor.toString()
+        case 'mcPatch': return (ctx: DependencyContext):
+            string => ctx.mcVersion.patch.toString()
         default: return undefined
     }
 }
@@ -41,32 +45,34 @@ export class PatternPart {
 
     constructor(
         readonly type: 'literal' // plain string
-            | 'variable'    // variable that is replaced with actual value in context
+            | 'contextual_wildcard'    // replaced with actual value in context
             | 'named_wildcard'      // RegExp /(.*)/ and the captured is compared as a SemVer 
             | 'wildcard',           // RegExp /(.*)/ and the captured is compared as a SemVer 
         readonly value: string
     ) {
-        switch (type) {
+        switch (this.type) {
             case 'wildcard': case 'named_wildcard':
                 this.hasCaptureGroup = true
+                break
             default:
                 this.hasCaptureGroup = false
+                break
         }
     }
 
     /**
-     * @returns a part of RegExp that is NOT ESCAPED
+     * @returns a part of RegExp properly escaped
      */
-    contextualize(context: VariableContext, escapeLiteralResult: boolean): string {
+    contextualize(context: DependencyContext, escapeLiteralResult: boolean): string {
         let ret: string
         switch (this.type) {
             case 'literal': ret = this.value; break
-            case 'variable': ret = variableExpander(this.value)!(context); break;
+            case 'contextual_wildcard': ret = contextualWildcardExpander(this.value)!(context); break
             case 'wildcard': case 'named_wildcard': ret = '(.*)'; break
         }
         if (escapeLiteralResult) {
             switch (this.type) {
-                case 'literal': case 'variable':
+                case 'literal': case 'contextual_wildcard':
                     ret = escapeStringRegexp(ret)
             }
         }
@@ -99,7 +105,7 @@ export class Dependency {
         readonly groupId: string,
         readonly artifactId: PatternPart[],
         readonly version: PatternPart[],
-        readonly variables: Map<string, Variable>,
+        readonly properties: Map<string, Property>,
     ) {
         this.versionCaptureTypes = []
         for (const part of version) {
@@ -108,9 +114,9 @@ export class Dependency {
         }
     }
 
-    contextualize(context: VariableContext): ContextualizedDependency {
-        const artifactId = this.artifactId.map(part => part.contextualize(context, false)).join()
-        const version = `^${this.artifactId.map(part => part.contextualize(context, true)).join()}$`
+    contextualize(context: DependencyContext): ContextualizedDependency {
+        const artifactId = this.artifactId.map(part => part.contextualize(context, false)).join('')
+        const version = `^${this.version.map(part => part.contextualize(context, true)).join('')}$`
         const versionRegExp = new RegExp(version)
         return new ContextualizedDependency(
             this,
@@ -149,20 +155,20 @@ export class ContextualizedDependency {
 }
 
 function bracketType(name: string): PatternPart['type'] {
-    return variableExpander(name) === undefined ? 'variable' : 'named_wildcard'
+    return contextualWildcardExpander(name) !== undefined ? 'contextual_wildcard' : 'named_wildcard'
 }
 
-function checkArtifactIdParts(artifactId: PatternPart[]) {
+function checkArtifactIdParts(artifactId: PatternPart[]): void {
     for (const part of artifactId) {
-        if (!(part.type === 'literal' || part.type === 'variable'))
-            throw new Error('artifactId can only contain literals or variables')
+        if (!(part.type === 'literal' || part.type === 'contextual_wildcard'))
+            throw new Error('artifactId can only contain literals or wildcards of Minecraft version')
     }
 }
 
 function readDependencies(input: string): Dependency[] {
     const doc = yml.parse(input)
     if (!Array.isArray(doc))
-        throw new Error('Configuration must be an array')
+        throw new Error('Configuration must exist as an array')
 
     const ret: Dependency[] = []
     for (const entry of doc) {
@@ -170,49 +176,61 @@ function readDependencies(input: string): Dependency[] {
         const groupId = entry['groupId']
         const artifactId = entry['artifactId']
         const version = entry['version']
-        const variables = entry['variables']
+        const properties = entry['properties']
 
-        if (!isString(repository))
-            throw new Error('repository must be a string')
-        if (!isString(groupId))
-            throw new Error('groupId must be a string')
+        for (const [key, expectedType] of [
+            ['repository', 'string'],
+            ['groupId', 'string'],
+            ['artifactId', 'string'],
+            ['version', 'string'],
+            ['properties', 'object'],
+        ]) {
+            const actualType = typeOf(entry[key])
+            if (actualType !== expectedType)
+                throw new Error(`${key} must exist as a ${expectedType}, but it is actually ${actualType}`)
+        }
 
-        if (!isString(artifactId))
-            throw new Error('artifactId must be a string')
         const parsedArtifactId = parsePattern(artifactId)
         checkArtifactIdParts(parsedArtifactId)
 
-        if (!isString(version))
-            throw new Error('version must be a string')
         const parsedVersion = parsePattern(version)
 
-        const actualVariables = new Map<string, Variable>()
-        for (const part of parsedVersion) {
-            if (part.type === 'named_wildcard') {
-                actualVariables.set(part.value, {
-                    name: part.value,
-                    source: 'named_wildcard'
+        const actualProperties = new Map<string, Property>()
+        // TODO: add this as a grammar sugar later on
+        // for (const part of parsedVersion) {
+        //     if (part.type === 'named_wildcard') {
+        //         actualVariables.set(part.value, {
+        //             name: part.value,
+        //             source: 'wildcard'
+        //         })
+        //     }
+        // }
+        const namedWildcardNames = new Set<string>(
+            parsedVersion.filter(part => part.type === 'named_wildcard').map(part => part.value)
+        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const [propertyName, propertyAttrs] of Object.entries<any>(properties)) {
+            const source = propertyAttrs['source']
+            if (!VALID_PROPERTY_SOURCES.includes(source)) {
+                throw new Error(`The source of property '${propertyName}' must be one of ${VALID_PROPERTY_SOURCES.join(', ')}`)
+            }
+
+            if (source === 'wildcard') {
+                const wildcardName = propertyAttrs['name'] ?? propertyName
+                if (!namedWildcardNames.has(wildcardName) && contextualWildcardExpander(wildcardName) === undefined) {
+                    throw new Error(`To give '${propertyName}' a wildcard source, a wildcard with name '${wildcardName}' must exist in the pattern of version`)
+                }
+                actualProperties.set(propertyName, {
+                    name: propertyName,
+                    source: source as Property['source'],
+                    wildcardName: wildcardName
+                })
+            } else {
+                actualProperties.set(propertyName, {
+                    name: propertyName,
+                    source: source as Property['source']
                 })
             }
-        }
-        if (!Array.isArray(variables))
-            throw new Error('variables must be an array')
-        for (const variable of variables) {
-            const content = Object.entries(variable)
-            if (content.length !== 1)
-                throw new Error('Each entry in variables must be a mapping from a name to a string')
-            const [varName, varSource] = content[0]
-            if (!isString(varName) || VALID_VARIABLE_SOURCES.indexOf(varSource as Variable['source']) === -1) {
-                throw new Error(`Each entry in variables must be a mapping from a name to any of ${VALID_VARIABLE_SOURCES.map(s => `'${s}'`).join(', ')
-                    }`)
-            }
-            if (varSource === 'semver' && !actualVariables.has(varName))
-                throw new Error(`To declare '${varName}' as a semver pattern, it must be included in the pattern of version`)
-
-            actualVariables.set(varName, {
-                name: varName,
-                source: varSource as Variable['source']
-            })
         }
 
         ret.push(new Dependency(
@@ -220,7 +238,7 @@ function readDependencies(input: string): Dependency[] {
             groupId as string,
             parsedArtifactId,
             parsedVersion,
-            actualVariables
+            actualProperties
         ))
     }
 
@@ -231,7 +249,7 @@ function parsePattern(pattern: string): PatternPart[] {
     if (pattern.length === 0)
         return []
 
-    let parts: PatternPart[] = []
+    const parts: PatternPart[] = []
 
     // This allows more flexibility if we want to add more patterns,
     // as all patterns are processed in one-go
@@ -240,11 +258,9 @@ function parsePattern(pattern: string): PatternPart[] {
     do {
         let nonLiteralPart: PatternPart | undefined
         const end = i
-        let isWildcard = false
         switch (pattern[i]) {
             case '*':
                 nonLiteralPart = new PatternPart('wildcard', '')
-                isWildcard = true
                 ++i
                 break
             case '$': {
@@ -278,7 +294,7 @@ function parsePattern(pattern: string): PatternPart[] {
     } while (i < pattern.length)
 
     if (start < pattern.length) {
-        let part = pattern.slice(start)
+        const part = pattern.slice(start)
         parts.push(new PatternPart('literal', part))
     }
 

@@ -5284,6 +5284,305 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 2209:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+/**
+ * Manages dependency configuration
+ */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ContextualizedDependency = exports.Dependency = exports.DependencySettings = exports.PatternPart = exports.contextualWildcardExpander = void 0;
+const yml = __importStar(__nccwpck_require__(4083));
+const fs_1 = __nccwpck_require__(7147);
+const utils_1 = __nccwpck_require__(1314);
+const version_1 = __nccwpck_require__(1946);
+const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
+const VALID_PROPERTY_SOURCES = [
+    'version', 'artifactId', 'wildcard'
+];
+function contextualWildcardExpander(name) {
+    switch (name) {
+        case 'mcVersion': return (ctx) => ctx.mcVersion.toString(!ctx.omitMcPatch);
+        case 'mcMajor': return (ctx) => ctx.mcVersion.major.toString();
+        case 'mcMinor': return (ctx) => ctx.mcVersion.minor.toString();
+        case 'mcPatch': return (ctx) => ctx.mcVersion.patch.toString();
+        default: return undefined;
+    }
+}
+exports.contextualWildcardExpander = contextualWildcardExpander;
+// pattern
+class PatternPart {
+    type;
+    value;
+    hasCaptureGroup;
+    constructor(type, // RegExp /(.*)/ and the captured is compared as a SemVer 
+    value) {
+        this.type = type;
+        this.value = value;
+        switch (this.type) {
+            case 'wildcard':
+            case 'named_wildcard':
+                this.hasCaptureGroup = true;
+                break;
+            default:
+                this.hasCaptureGroup = false;
+                break;
+        }
+    }
+    /**
+     * @returns a part of RegExp properly escaped
+     */
+    contextualize(context, escapeLiteralResult) {
+        let ret;
+        switch (this.type) {
+            case 'literal':
+                ret = this.value;
+                break;
+            case 'contextual_wildcard':
+                ret = contextualWildcardExpander(this.value)(context);
+                break;
+            case 'wildcard':
+            case 'named_wildcard':
+                ret = '(.*)';
+                break;
+        }
+        if (escapeLiteralResult) {
+            switch (this.type) {
+                case 'literal':
+                case 'contextual_wildcard':
+                    ret = (0, escape_string_regexp_1.default)(ret);
+            }
+        }
+        return ret;
+    }
+}
+exports.PatternPart = PatternPart;
+// DependencySettings
+class DependencySettings {
+    dependencies;
+    constructor(input) {
+        this.dependencies = readDependencies(input);
+    }
+    static async readFromFile(path) {
+        const input = await fs_1.promises.readFile(path);
+        const inputDecoded = input.toString();
+        const ret = new DependencySettings(inputDecoded);
+        return ret;
+    }
+}
+exports.DependencySettings = DependencySettings;
+class Dependency {
+    repository;
+    groupId;
+    artifactId;
+    version;
+    properties;
+    versionCaptureTypes;
+    constructor(repository, groupId, artifactId, version, properties) {
+        this.repository = repository;
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.properties = properties;
+        this.versionCaptureTypes = [];
+        for (const part of version) {
+            if (part.hasCaptureGroup)
+                this.versionCaptureTypes.push(part.type);
+        }
+    }
+    contextualize(context) {
+        const artifactId = this.artifactId.map(part => part.contextualize(context, false)).join('');
+        const version = `^${this.version.map(part => part.contextualize(context, true)).join('')}$`;
+        const versionRegExp = new RegExp(version);
+        return new ContextualizedDependency(this, this.repository, this.groupId, artifactId, versionRegExp);
+    }
+    capturesToVersion(captures) {
+        if (captures.length !== this.versionCaptureTypes.length)
+            throw new Error('Unmatched number of captures');
+        let joined = '';
+        for (let i = 0; i < this.versionCaptureTypes.length; ++i) {
+            switch (this.versionCaptureTypes[i]) {
+                case 'wildcard':
+                case 'named_wildcard':
+                    joined += '-';
+                    joined += captures[i];
+                    break;
+            }
+        }
+        return new version_1.DependencyVersion(joined);
+    }
+}
+exports.Dependency = Dependency;
+class ContextualizedDependency {
+    parent;
+    repository;
+    groupId;
+    artifactId;
+    version;
+    constructor(parent, repository, groupId, artifactId, version) {
+        this.parent = parent;
+        this.repository = repository;
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+    }
+}
+exports.ContextualizedDependency = ContextualizedDependency;
+function bracketType(name) {
+    return contextualWildcardExpander(name) !== undefined ? 'contextual_wildcard' : 'named_wildcard';
+}
+function checkArtifactIdParts(artifactId) {
+    for (const part of artifactId) {
+        if (!(part.type === 'literal' || part.type === 'contextual_wildcard'))
+            throw new Error('artifactId can only contain literals or wildcards of Minecraft version');
+    }
+}
+function readDependencies(input) {
+    const doc = yml.parse(input);
+    if (!Array.isArray(doc))
+        throw new Error('Configuration must exist as an array');
+    const ret = [];
+    for (const entry of doc) {
+        const repository = entry['repository'];
+        const groupId = entry['groupId'];
+        const artifactId = entry['artifactId'];
+        const version = entry['version'];
+        const properties = entry['properties'];
+        for (const [key, expectedType] of [
+            ['repository', 'string'],
+            ['groupId', 'string'],
+            ['artifactId', 'string'],
+            ['version', 'string'],
+            ['properties', 'object'],
+        ]) {
+            const actualType = (0, utils_1.typeOf)(entry[key]);
+            if (actualType !== expectedType)
+                throw new Error(`${key} must exist as a ${expectedType}, but it is actually ${actualType}`);
+        }
+        const parsedArtifactId = parsePattern(artifactId);
+        checkArtifactIdParts(parsedArtifactId);
+        const parsedVersion = parsePattern(version);
+        const actualProperties = new Map();
+        // TODO: add this as a grammar sugar later on
+        // for (const part of parsedVersion) {
+        //     if (part.type === 'named_wildcard') {
+        //         actualVariables.set(part.value, {
+        //             name: part.value,
+        //             source: 'wildcard'
+        //         })
+        //     }
+        // }
+        const namedWildcardNames = new Set(parsedVersion.filter(part => part.type === 'named_wildcard').map(part => part.value));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const [propertyName, propertyAttrs] of Object.entries(properties)) {
+            const source = propertyAttrs['source'];
+            if (!VALID_PROPERTY_SOURCES.includes(source)) {
+                throw new Error(`The source of property '${propertyName}' must be one of ${VALID_PROPERTY_SOURCES.join(', ')}`);
+            }
+            if (source === 'wildcard') {
+                const wildcardName = propertyAttrs['name'] ?? propertyName;
+                if (!namedWildcardNames.has(wildcardName) && contextualWildcardExpander(wildcardName) === undefined) {
+                    throw new Error(`To give '${propertyName}' a wildcard source, a wildcard with name '${wildcardName}' must exist in the pattern of version`);
+                }
+                actualProperties.set(propertyName, {
+                    name: propertyName,
+                    source: source,
+                    wildcardName: wildcardName
+                });
+            }
+            else {
+                actualProperties.set(propertyName, {
+                    name: propertyName,
+                    source: source
+                });
+            }
+        }
+        ret.push(new Dependency(repository, groupId, parsedArtifactId, parsedVersion, actualProperties));
+    }
+    return ret;
+}
+function parsePattern(pattern) {
+    if (pattern.length === 0)
+        return [];
+    const parts = [];
+    // This allows more flexibility if we want to add more patterns,
+    // as all patterns are processed in one-go
+    let start = 0;
+    let i = 0;
+    do {
+        let nonLiteralPart;
+        const end = i;
+        switch (pattern[i]) {
+            case '*':
+                nonLiteralPart = new PatternPart('wildcard', '');
+                ++i;
+                break;
+            case '$': {
+                ++i;
+                if (i < pattern.length && pattern[i] !== '{')
+                    break;
+                let right = i + 1;
+                while (right < pattern.length && pattern[right] !== '}')
+                    ++right;
+                if (right >= pattern.length)
+                    throw new Error('No right bracket is found');
+                // i + 1 <= right < pattern.length
+                const name = pattern.slice(i + 1, right);
+                nonLiteralPart = new PatternPart(bracketType(name), name);
+                i = right + 1;
+                break;
+            }
+            default:
+                ++i;
+                break;
+        }
+        if (nonLiteralPart !== undefined) {
+            // start <= end < pattern.length
+            if (end > start) {
+                parts.push(new PatternPart('literal', pattern.slice(start, end)));
+            }
+            start = i;
+            parts.push(nonLiteralPart);
+        }
+    } while (i < pattern.length);
+    if (start < pattern.length) {
+        const part = pattern.slice(start);
+        parts.push(new PatternPart('literal', part));
+    }
+    return parts;
+}
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -5312,23 +5611,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
-const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const network_1 = __nccwpck_require__(2280);
 const utils_1 = __nccwpck_require__(1314);
+const version_1 = __nccwpck_require__(1946);
+const dependency_1 = __nccwpck_require__(2209);
 const prop = __importStar(__nccwpck_require__(4414));
-const yml = __importStar(__nccwpck_require__(4083));
-const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
 const promises_1 = __nccwpck_require__(8670);
 const PROPERTIES_FILE = 'gradle.properties';
 const MINECRAFT_VERSION_KEY = 'minecraft_version';
-const CONFIG_FILENAME = 'modding-dependencies.yml';
-const CONFIG_PATH = `.github/${CONFIG_FILENAME}`;
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -5336,17 +5629,18 @@ const CONFIG_PATH = `.github/${CONFIG_FILENAME}`;
 async function run() {
     try {
         const properties = prop.createEditor(PROPERTIES_FILE);
+        const githubVars = new utils_1.GitHubVariables();
+        const depSettings = await dependency_1.DependencySettings.readFromFile(githubVars.configPath);
         const currMcVersionStr = properties.get(MINECRAFT_VERSION_KEY);
         if (currMcVersionStr === undefined)
             throw Error(`${MINECRAFT_VERSION_KEY} is not found in ${PROPERTIES_FILE}`);
-        const currMcVersion = utils_1.McVersion.fromString(currMcVersionStr);
-        const githubVars = new utils_1.GitHubVariables();
+        const currMcVersion = version_1.McVersion.fromString(currMcVersionStr);
         let targetMcVersion = currMcVersion;
         let newerMcVersion = false;
         if (githubVars.updateMcPatch) {
             const mcVersions = await (0, network_1.fetchLatestMcVersions)();
             const latestMcPatch = mcVersions.get(currMcVersion.minor);
-            targetMcVersion = new utils_1.McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch);
+            targetMcVersion = new version_1.McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch);
             newerMcVersion = targetMcVersion.compare(currMcVersion) > 0;
             if (newerMcVersion) {
                 core.info(`${MINECRAFT_VERSION_KEY}: ${currMcVersionStr} => ${targetMcVersion.toString()}`);
@@ -5360,51 +5654,45 @@ async function run() {
             core.info(`Skip updating ${MINECRAFT_VERSION_KEY}`);
         }
         const needUpdateDep = !githubVars.updateOnlyWithMc || newerMcVersion;
-        let updatedVariables = 0;
-        let totalVariables = 0;
+        let updatedProps = 0;
+        const totalProps = depSettings.dependencies
+            .flatMap(dep => Array.from(dep.properties.entries())).length;
         if (needUpdateDep) {
-            const configs = await readUpdateConfigs(properties);
-            const tasks = [];
-            for (const config of configs) {
-                const task = async () => {
-                    try {
-                        const version = await fetchUpdate(config, targetMcVersion);
-                        if (version !== undefined)
-                            return version;
-                    }
-                    finally { /* ignore */ }
-                    if (githubVars.tolerable)
-                        return undefined;
-                    // the error that actually get logged
-                    throw new Error('Fail fast in finding version');
-                };
-                tasks.push(task());
-            }
-            const results = await Promise.all(tasks);
-            for (let i = 0; i < results.length; ++i) {
-                const result = results[i];
-                if (result === undefined)
-                    continue;
-                const config = configs[i];
-                for (const variable of config.variables) {
-                    const [name, source] = Object.entries(variable)[0];
-                    const oldVal = properties.get(name);
-                    const newVal = result[source];
-                    if (oldVal !== newVal) {
-                        properties.set(name, newVal);
-                        ++updatedVariables;
-                        core.info(`${name}: ${oldVal} => ${newVal}`);
-                    }
-                    else {
-                        core.info(`${name}: ${oldVal} => ${newVal} (no change)`);
-                    }
-                    ++totalVariables;
+            const tasks = depSettings.dependencies
+                .map(async (dep, i) => (async () => {
+                try {
+                    return await fetchDependencyUpdates(dep, targetMcVersion);
                 }
+                catch (error) {
+                    if (!githubVars.tolerable)
+                        throw error;
+                    core.info(`Skip error in fetching the latest version for the dependency at index ${i} due to tolerable=true`);
+                    if (error instanceof Error)
+                        core.info(error.message);
+                    return new Map();
+                }
+            })());
+            const results = await Promise.all(tasks);
+            const newPropVals = results.flatMap(newValMap => Array.from(newValMap.entries()));
+            for (const [propName, newVal] of newPropVals) {
+                const oldVal = properties.get(propName);
+                let info = `${propName}: ${oldVal} => ${newVal}`;
+                if (oldVal !== newVal) {
+                    properties.set(propName, newVal);
+                    ++updatedProps;
+                }
+                else {
+                    info += ' (no change)';
+                }
+                core.info(info);
             }
         }
-        properties.save();
-        core.info(`${updatedVariables}/${totalVariables} dependencies updated`);
-        githubVars.setAnyUpdate(updatedVariables > 0);
+        if (!githubVars.dryRun)
+            properties.save();
+        else
+            core.info('dry_run is set to true, the files will not be updated');
+        core.info(`${updatedProps}/${totalProps} dependencies updated`);
+        githubVars.setAnyUpdate(updatedProps > 0);
     }
     catch (error) {
         if (error instanceof Error)
@@ -5413,188 +5701,81 @@ async function run() {
 }
 exports.run = run;
 /**
- * @returns string of best matching version,
- *  or undefined if matching version exist
+ * @returns a map giving updated properties
  */
-async function fetchUpdate(config, targetMcVersion) {
-    // assume that Minecraft has a very limited number of patches per minor version
-    for (let mcPatch = targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
-        if (mcPatch !== targetMcVersion.patch)
-            await (0, promises_1.setTimeout)(1000);
-        const context = {
-            mcVersion: new utils_1.McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch)
-        };
-        const artifactId = parsePattern(config.artifactId, context, false, false).result;
-        let versions;
-        try {
-            const meta = await (0, network_1.fetchMavenMeta)(config.repository, config.groupId, artifactId);
-            versions = meta.versions;
-        }
-        catch (error) {
-            core.debug(`Trial failed for ${config.groupId}:${artifactId} in ${config.repository}`);
-            continue;
-        }
-        const { result: versionPattern, extractionTypes } = parsePattern(config.version, { mcVersion: targetMcVersion }, true, true);
-        const versionRegex = new RegExp(`^${versionPattern}$`);
-        let bestVersion;
-        let bestExtraction;
-        for (const versionStr of versions) {
-            const matchResult = versionStr.match(versionRegex);
-            if (matchResult === null)
+async function fetchDependencyUpdates(dependency, targetMcVersion) {
+    // making trials assumes that Minecraft has a very limited number of patches per minor version
+    for (const omitPatch of [false, true])
+        for (let mcPatch = omitPatch ? targetMcVersion.patch : 0; mcPatch >= 0; --mcPatch) {
+            if (mcPatch !== targetMcVersion.patch)
+                await (0, promises_1.setTimeout)(1000);
+            const trialContext = {
+                mcVersion: new version_1.McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch),
+                omitMcPatch: omitPatch
+            };
+            const contextualized = dependency.contextualize(trialContext);
+            const artifactId = contextualized.artifactId;
+            let versions;
+            try {
+                const meta = await (0, network_1.fetchMavenMeta)(dependency.repository, dependency.groupId, artifactId);
+                versions = meta.versions;
+            }
+            catch (error) {
+                core.debug(`Trial failed for ${dependency.groupId}:${artifactId} in ${dependency.repository} with Minecraft version ${trialContext.mcVersion.toString(trialContext.omitMcPatch)}`);
+                if (error instanceof Error)
+                    core.debug(error.message);
+                continue; // next trial
+            }
+            let bestVersionStr;
+            let bestVersion;
+            let bestCaptures;
+            for (const versionStr of versions) {
+                const matchResult = versionStr.match(contextualized.version);
+                if (matchResult === null)
+                    continue; // ignore unmatched versions
+                const captures = matchResult.slice(1);
+                const parsedVersion = dependency.capturesToVersion(captures);
+                if (bestVersion === undefined || parsedVersion.compare(bestVersion) >= 0) {
+                    bestVersionStr = versionStr;
+                    bestVersion = parsedVersion;
+                    bestCaptures = captures;
+                }
+            }
+            if (bestVersionStr === undefined || bestCaptures === undefined)
                 continue;
-            if (matchResult.length - 1 !== extractionTypes.length)
-                throw new Error('Length of match result does not match expectation');
-            const extraction = matchResult.slice(1);
-            if (bestExtraction === undefined
-                || compareExtraction(extraction, bestExtraction, extractionTypes) >= 0) {
-                bestExtraction = extraction;
-                bestVersion = versionStr;
+            core.info(`The best matching version is ${bestVersionStr} for ${dependency.groupId}:${artifactId} in ${dependency.repository}`);
+            // resolve properties when a trial is successful
+            const newPropValues = new Map();
+            for (const [propName, propAttrs] of dependency.properties.entries()) {
+                let newVal;
+                switch (propAttrs.source) {
+                    case 'version':
+                        newVal = bestVersionStr;
+                        break;
+                    case 'artifactId':
+                        newVal = artifactId;
+                        break;
+                    case 'wildcard': {
+                        const expander = (0, dependency_1.contextualWildcardExpander)(propAttrs.wildcardName);
+                        if (expander !== undefined) {
+                            newVal = expander(trialContext);
+                        }
+                        else {
+                            for (let j = 0; j < dependency.version.length; ++j) {
+                                if (dependency.version[j].type === 'named_wildcard'
+                                    && dependency.version[j].value === propAttrs.wildcardName) {
+                                    newVal = bestCaptures[j];
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                newPropValues.set(propName, newVal);
             }
+            return newPropValues;
         }
-        if (bestVersion === undefined || bestExtraction === undefined)
-            continue;
-        core.info(`The best matching version is ${bestVersion} for ${config.groupId}:${artifactId} in ${config.repository}`);
-        return { artifactId: artifactId, version: bestVersion };
-    }
-    core.info(`No matching version is found for ${config.groupId}:${config.artifactId} in ${config.repository}`);
-    return undefined;
-}
-/**
- * Lengths of three arguments must match
- */
-function compareExtraction(x, y, types) {
-    for (let i = 0; i < x.length; ++i) {
-        let cmp;
-        switch (types[i]) {
-            case '#':
-                cmp = parseInt(x[i]) - parseInt(y[i]);
-                break;
-            case '*':
-                cmp = 0;
-                break;
-        }
-        if (Number.isNaN(cmp))
-            throw new Error('Illegal compare result, possibily a bug in pattern matching');
-        if (cmp !== 0)
-            return cmp;
-    }
-    return 0;
-}
-function parsePattern(pattern, context, allowWildcard, escapeForRegex) {
-    if (pattern.length === 0)
-        return { result: '', extractionTypes: [] };
-    let constructed = '';
-    const extractionType = [];
-    const replacer = (varName) => {
-        switch (varName) {
-            case 'mcMajor': return context.mcVersion.major.toString();
-            case 'mcMinor': return context.mcVersion.minor.toString();
-            case 'mcPatch': return context.mcVersion.patch.toString();
-            case 'mcVersion': return context.mcVersion.toString(false);
-            case 'mcVersionFull': return context.mcVersion.toString(true);
-            default: throw new Error(`Invalid variable ${varName}`);
-        }
-    };
-    // const varFilled = pattern.replaceAll(/\${[^{}]+}/, match => replacer(match.slice(2, -1)))
-    // This allows more flexibility if we want to add more patterns,
-    // as all patterns are processed in one-go
-    let start = 0;
-    let i = 0;
-    do {
-        let replaced;
-        const end = i;
-        let isWildcard = false;
-        switch (pattern[i]) {
-            case '#':
-                replaced = '(\\d+)';
-                extractionType.push('#');
-                isWildcard = true;
-                ++i;
-                break;
-            case '*':
-                replaced = '(.*?)';
-                extractionType.push('*');
-                isWildcard = true;
-                ++i;
-                break;
-            case '$': {
-                ++i;
-                if (i < pattern.length && pattern[i] !== '{')
-                    break;
-                let right = i + 1;
-                while (right < pattern.length && pattern[right] !== '}')
-                    ++right;
-                if (right >= pattern.length)
-                    throw new Error('No right bracket is found');
-                // i + 1 <= right < pattern.length
-                replaced = replacer(pattern.slice(i + 1, right));
-                if (escapeForRegex)
-                    replaced = (0, escape_string_regexp_1.default)(replaced);
-                i = right + 1;
-                break;
-            }
-            default:
-                ++i;
-                break;
-        }
-        if (isWildcard && !allowWildcard)
-            throw new Error('Wildcard is only allowed in version');
-        if (replaced !== undefined) {
-            // start <= end < pattern.length
-            if (end > start) {
-                let part = pattern.slice(start, end);
-                if (escapeForRegex)
-                    part = (0, escape_string_regexp_1.default)(part);
-                constructed += part;
-            }
-            start = i;
-            constructed += replaced;
-        }
-    } while (i < pattern.length);
-    if (start < pattern.length) {
-        let part = pattern.slice(start);
-        if (escapeForRegex)
-            part = (0, escape_string_regexp_1.default)(part);
-        constructed += part;
-    }
-    return { result: constructed, extractionTypes: extractionType };
-}
-async function readUpdateConfigs(properties) {
-    const configs = [];
-    const configFile = await fs_1.promises.readFile(CONFIG_PATH);
-    const configYml = yml.parse(configFile.toString());
-    if (!Array.isArray(configYml))
-        throw new Error('Configuration must be an array');
-    for (const entry of configYml) {
-        const repository = entry['repository'];
-        const groupId = entry['groupId'];
-        const artifactId = entry['artifactId'];
-        const version = entry['version'];
-        const variables = entry['variables'];
-        if (!(0, utils_1.isString)(repository))
-            throw new Error('repository must be a string');
-        if (!(0, utils_1.isString)(groupId))
-            throw new Error('groupId must be a string');
-        if (!(0, utils_1.isString)(artifactId))
-            throw new Error('artifactId must be a string');
-        if (!(0, utils_1.isString)(version))
-            throw new Error('version must be a string');
-        if (!Array.isArray(variables))
-            throw new Error('variables must be an array');
-        for (const variable of variables) {
-            const content = Object.entries(variable);
-            if (content.length !== 1 || !(0, utils_1.isString)(content[0][0])
-                || content[0][1] !== 'version' && content[0][1] !== 'artifactId') {
-                throw new Error('Each entry in variables must be a mapping from a name to either version or artifactId');
-            }
-            const variableName = content[0][0];
-            if (properties.get(variableName) === undefined) {
-                throw new Error(`Configured variable ${variableName} does not exist in ${PROPERTIES_FILE}`);
-            }
-        }
-        configs.push({ repository, groupId, artifactId, version, variables });
-    }
-    return configs;
+    throw new Error(`No matching version is found for ${dependency.groupId}:${dependency.artifactId} in ${dependency.repository}`);
 }
 
 
@@ -5633,6 +5814,7 @@ exports.fetchMavenMeta = exports.fetchLatestMcVersions = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fast_xml_parser_1 = __nccwpck_require__(2603);
 const utils_1 = __nccwpck_require__(1314);
+const version_1 = __nccwpck_require__(1946);
 const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 async function fetchLatestMcVersions() {
     const resp = await fetch(VERSION_MANIFEST_URL);
@@ -5640,7 +5822,7 @@ async function fetchLatestMcVersions() {
     const latest = new Map(); // minor to patch version
     for (const versionStr of json.versions) {
         if (versionStr.type === 'release') {
-            const version = utils_1.McVersion.fromString(versionStr.id);
+            const version = version_1.McVersion.fromString(versionStr.id);
             if ((latest.get(version.minor) ?? -1) < version.patch) {
                 latest.set(version.minor, version.patch);
             }
@@ -5679,7 +5861,6 @@ async function fetchMavenMeta(repo, groupId, artifactId) {
     const text = await resp.text();
     const xml = MAVEN_META_PARSER.parse(text);
     const versions = xml.metadata?.versioning?.versions?.version;
-    console.log(versions);
     if (Array.isArray(versions)) {
         for (const version of versions)
             if (!(0, utils_1.isString)(version))
@@ -5724,17 +5905,69 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isString = exports.McVersion = exports.GitHubVariables = void 0;
+exports.typeOf = exports.isObject = exports.isString = exports.GitHubVariables = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+function booleanInput(key, defaultVal) {
+    const input = core.getInput(key);
+    return input.length === 0 ? defaultVal : input.toLowerCase() === 'true';
+}
+function stringInput(key, defaultVal) {
+    const input = core.getInput(key);
+    return input.length === 0 ? defaultVal : input;
+}
 class GitHubVariables {
-    updateMcPatch = core.getInput('update_mc_patch').toLowerCase() === 'true';
-    updateOnlyWithMc = core.getInput('update_only_with_mc').toLowerCase() === 'true';
-    tolerable = core.getInput('tolerable').toLowerCase() === 'true';
+    configPath = stringInput('config_path', './.github/modding-dependencies.yml');
+    updateMcPatch = booleanInput('update_mc_patch', true);
+    updateOnlyWithMc = booleanInput('update_only_with_mc', false);
+    tolerable = booleanInput('tolerable', false);
+    dryRun = booleanInput('dry_run', false);
     setAnyUpdate(val) {
         core.setOutput('any_update', val);
     }
 }
 exports.GitHubVariables = GitHubVariables;
+function isString(x) {
+    return typeOf(x) === 'string';
+}
+exports.isString = isString;
+function isObject(x) {
+    return typeOf(x) === 'object';
+}
+exports.isObject = isObject;
+function typeOf(x) {
+    if (x === undefined)
+        return 'undefined';
+    else if (x === null)
+        return 'null';
+    else if ((typeof x === 'string') || (x instanceof String))
+        return 'string';
+    else if ((typeof x === 'number') || (x instanceof Number))
+        return 'number';
+    else if ((typeof x === 'boolean') || (x instanceof Boolean))
+        return 'boolean';
+    else if ((typeof x === 'symbol') || (x instanceof Symbol))
+        return 'symbol';
+    else if (Array.isArray(x))
+        return 'array';
+    else
+        return 'object';
+}
+exports.typeOf = typeOf;
+
+
+/***/ }),
+
+/***/ 1946:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+/**
+ * Versioning of Minecraft and other dependencies
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DependencyVersion = exports.McVersion = void 0;
+const utils_1 = __nccwpck_require__(1314);
 class McVersion {
     major;
     minor;
@@ -5772,11 +6005,100 @@ class McVersion {
     }
 }
 exports.McVersion = McVersion;
-function isString(x) {
-    const ret = (typeof x === 'string') || (x instanceof String);
-    return ret;
+// Currently, we do not have intelligence for Minecraft version and distribution keywords
+// This might be implemented in the future
+// const VERSION_PART = /([^0-9a-zA-Z]?)(?:(\d+)|([a-zA-Z]+))/g
+// const DISTS = new Set(['kotlin', 'java', 'scala', 'fabric', 'quilt', 'neo', 'forge'])
+// const IGNORED = new Set<string>(DISTS)
+// for (const c in ['mc', 'v']) IGNORED.add(c)
+const VERSION_PART = /(\d+)|([a-zA-Z]+)/g;
+// this order matters, and 'dev' must be at position 0
+const SPECIALS = ['dev', 'rc', 'snapshot', 'final', 'ga', 'release', 'sp'];
+class DependencyVersion {
+    //     readonly dists = new Set<string>()
+    //     readonly mcVersion?: (string|number)[]
+    //     readonly dotGroups: (string|number)[][] = []
+    parts = [];
+    constructor(versionStr) {
+        for (const match of versionStr.trim().matchAll(VERSION_PART)) {
+            if (match[1] !== undefined) { // numerical part
+                this.parts.push(parseInt(match[1]));
+            }
+            else {
+                this.parts.push(match[2]);
+            }
+        }
+    }
+    /**
+     * See: https://docs.gradle.org/current/userguide/single_versions.html#version_ordering
+     */
+    compare(other) {
+        for (let i = 0; this.parts[i] !== undefined || other.parts[i] !== undefined; ++i) {
+            const x = this.parts[i];
+            const y = other.parts[i];
+            const sx = (0, utils_1.isString)(x);
+            const sy = (0, utils_1.isString)(y);
+            const ux = x === undefined;
+            const uy = y === undefined;
+            const nx = !sx && !ux;
+            const ny = !sy && !uy;
+            let cmp;
+            if (nx && ny) {
+                cmp = x - y;
+            }
+            else if (nx) { // numeric > letters or empty
+                cmp = 1;
+            }
+            else if (ny) {
+                cmp = -1;
+            }
+            else if (sx && sy) { // from this point, none of x and y can be numerical
+                const lx = x.toLowerCase();
+                const ly = y.toLowerCase();
+                const ix = SPECIALS.indexOf(lx);
+                const iy = SPECIALS.indexOf(ly);
+                if (ix !== -1 && iy !== -1) {
+                    cmp = ix - iy;
+                }
+                else if (ix !== -1) {
+                    cmp = ix === 0 ? -1 : 1;
+                }
+                else if (iy !== -1) {
+                    cmp = iy === 0 ? 1 : -1;
+                }
+                else { // both are non-special
+                    cmp = compareStringLexigraphically(x, y);
+                }
+            }
+            else if (sx) { // letters < empty
+                cmp = -1;
+            }
+            else { // x and y can't be both undefined
+                cmp = 1;
+            }
+            if (cmp !== 0)
+                return cmp;
+        }
+        return 0;
+    }
 }
-exports.isString = isString;
+exports.DependencyVersion = DependencyVersion;
+function compareStringLexigraphically(x, y) {
+    for (let j = 0; j < x.length || j < y.length; ++j) {
+        const cx = x.charCodeAt(j);
+        const cy = y.charCodeAt(j);
+        if (Number.isNaN(cx)) {
+            return -1;
+        }
+        else if (Number.isNaN(cy)) {
+            return 1;
+        }
+        else if (cx !== cy) {
+            return cx - cy;
+        }
+    }
+    return 0;
+}
 
 
 /***/ }),

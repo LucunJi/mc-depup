@@ -7,6 +7,11 @@ branding:
   color: 'yellow'
 
 inputs:
+  config_path:
+    description: |
+      'Path to the config file'
+    default: './.github/modding-dependencies.yml'
+
   update_mc_patch:
     description: |
       'Update patch version of Minecraft'
@@ -21,7 +26,13 @@ inputs:
 
   tolerable:
     description: |
-      'Allow any of the configured dependency to fail'
+      'Allow the update of any dependency to fail'
+      'true | false'
+    default: false
+
+  dry_run:
+    description: |
+      'The new configuration is not written to the file'
       'true | false'
     default: false
 

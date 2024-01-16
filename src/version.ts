@@ -71,10 +71,10 @@ export class DependencyVersion {
      */
     compare(other: DependencyVersion): number {
         for (let i = 0; this.parts[i] !== undefined || other.parts[i] !== undefined; ++i) {
-            const x = this.parts[i], y = other.parts[i]
-            const sx = isString(x), sy = isString(y)
-            const ux = x === undefined, uy = y === undefined
-            const nx = !sx && !ux, ny = !sy && !uy
+            const x = this.parts[i]; const y = other.parts[i]
+            const sx = isString(x); const sy = isString(y)
+            const ux = x === undefined; const uy = y === undefined
+            const nx = !sx && !ux; const ny = !sy && !uy
 
             let cmp: number
             if (nx && ny) {
@@ -84,8 +84,8 @@ export class DependencyVersion {
             } else if (ny) {
                 cmp = -1
             } else if (sx && sy) {  // from this point, none of x and y can be numerical
-                const lx = (x as string).toLowerCase(), ly = (y as string).toLowerCase()
-                const ix = SPECIALS.indexOf(lx), iy = SPECIALS.indexOf(ly)
+                const lx = (x as string).toLowerCase(); const ly = (y as string).toLowerCase()
+                const ix = SPECIALS.indexOf(lx); const iy = SPECIALS.indexOf(ly)
                 if (ix !== -1 && iy !== -1) {
                     cmp = ix - iy
                 } else if (ix !== -1) {
@@ -109,7 +109,7 @@ export class DependencyVersion {
 
 function compareStringLexigraphically(x: string, y: string): number {
     for (let j = 0; j < x.length || j < y.length; ++j) {
-        const cx = x.charCodeAt(j), cy = y.charCodeAt(j)
+        const cx = x.charCodeAt(j); const cy = y.charCodeAt(j)
         if (Number.isNaN(cx)) {
             return -1
         } else if (Number.isNaN(cy)) {

@@ -55,16 +55,22 @@ The `modding-dependencies.yml` should contain multiple entries in this format,
 so they form a list:
 
 ``` yaml
-- repository: <a string of maven repository>
-  groupId: <a string of groupId>
-  artifactId: <a tring (pattern) of artifactId>
-  version: <s string (pattern) of version>
-  properties: <a list telling MC-DepUp what project properties to update>
-    - <property name in gradle.properties>: <the source of its value>
+- repository: "<maven repository>"
+  groupId: "<groupId>"
+  artifactId: "<pattern of artifactId>"
+  version: "<pattern of version>"
+  properties: <a map telling MC-DepUp what project properties to update>
+    "<property name in gradle.properties>":
+      source: "<the source of its value>"
 ```
 
 You also need to have `minecraft_version` in your `gradle.properties`,
 so MC-DepUp knows the version of Minecraft that your project depends on.
+
+The source of value for any property could be one of these:
+
+- `artifactId`/`version`: the entire matched artifactId/version string
+- `wildcard`: the wildcard with the same name as the wildcard in the bracket
 
 
 ### Wildcards
@@ -73,68 +79,83 @@ There's hardly any versioning convention that all Minecraft modders follow,
 that's a sad story for any general dependency manager.
 
 Therefore, MC-DepUp's wildcards can come handy.
-You can have them in the pattern of `artifactID` and `version`.
+You can have them in the pattern of `artifactId` and `version`.
 
 | Wildcard        | Matched Characters                                          |
 | --------------- | ----------------------------------------------------------- |
-| `*`             | Any number of any characters, equalvalent to RegEx `(.*)`. **Can't be use to match an artifactID**    |
-| `${mcMajor}`    | Major version of Minecraft, always `1`                      |
-| `${mcMinor}`    | Minor version of Minecraft, it's `20` in `1.20.1`           |
+| `*`             | Any number of any characters, same as the RegEx `(.*)`. **Can't be used to match an artifactId**    |
+| `${mcMajor}`    | Major version of Minecraft; it's always `1`                 |
+| `${mcMinor}`    | Minor version of Minecraft; it's `20` for Minecraft `1.20.1`|
 | `${mcPatch}`    | Any non-negative number less than or equal to the patch version of Minecraft |
-| `${mcVersion}`  | Any Minecraft version with its patch no greater than the project's Minecraft version |
-| `${<any other name>}` | Same effect with `*`. In additon, the matched characters are also used to update project properties with the same name. **Can't be use to match an artifactID**    |
+| `${mcVersion}`  | Any version with the same major and minor versions, while the patch version is no greater than the Minecraft patch version; the patch version can be omitted |
+| `${<any other name>}` | Same effect with `*`. **Can't be used to match an artifactId**    |
 
 **Additional notes**:
 
-- For example, if a project's Minecraft version is `1.20.4`,
-  `${mcVersion}` matches in this order:
-  `1.20.4`, `1.20.3`, `1.20.2`, `1.20.1`, `1.20.0`, `1.20`
+- For example, if a project's Minecraft version is `1.20.2`,
+  `${mcVersion}` matches any of those:
+  `1.20.2`, `1.20.1`, `1.20.0`, `1.20`
 
-    - Similarly, `${mc_patch}` matches in this order:
-      `4`, `3`, `2`, `1`, `0`.
-      It does not match the empty string.
+    - Similarly, `${mcPatch}` matches any of `2`, `1`, `0`,
+      except the empty string.
 
-- Although they share similar formats,
-  `${mcMajor}, ${mcMinor}, ${mcPatch}, ${mcVersion}`
-  are not used to update project properties in the same way as `${<any other name>}`.
+- `${mcMajor}, ${mcMinor}, ${mcPatch}, ${mcVersion}`
+  have names in camelCase to distinguish from other named wildcards,
+  which are usually in snake_case,
+  as they have different rules of matching
 
-    - They hence have names in camelCase to distinguish from your project properties,
-      which are usually in snake_case.
 
 **Notes for early-birds**:
 
-- "Variables" used for matching is now renamed and classified as part of "wildcards".
-- `${mcVersionFull}` is removed and becomes part of `${mcVersion}`.
-- `#` is removed.
-- In future versions, wildcards with suffix `minecraft_version` or `mc_version` in their names
-  might match in the same way as `${mcVersion}`,
-  while they are also used to update properties.
+- The word "variables" is too widely used,
+  so this key in `modding-dependencies.yml` is renamed to "dependencies"
+  - Its structure is also overhauled.
+- Similarly, what were previously called "variables" in matching now become a subset of "wildcards".
+- `${mcVersionFull}` is removed, and its functionality is merged to `${mcVersion}`.
+- `#` is removed as it is not flexible to the omission of patch version.
+- `*` now performs greedy matching.
+
+
+### Version ordering
+
+To determining the newest version,
+all matching versions are firstly filtered by the parts matched by `${mcVersion}` or `${mcPatch}`,
+and the ones with the highest Minecraft version is kept. Note that the ones with the patch versions are considered newer than the ones without.
+
+Then, the parts matched by `*` are compared from left to right following [Gradle's version ordering rules](https://docs.gradle.org/current/userguide/single_versions.html)
+
+For example, these versions are ordered from the newest to the oldest,
+when the version pattern is `*-mc${mcVersion}*` and Minecraft version is `1.20.2`
+
+- `1.0.1-mc1.20.2` (effectively `1.0.1`)
+- `1.0.0-mc1.20.2` (effectively `1.0.0`)
+- `1.0-mc1.20.2` (effectively `1.0`)
+- `1.0-mc1.20.2-alpha` (effectively `1.0-alpha`)
 
 
 ## How to develop and run locally
 
-To develop, run `npm install` to setup,
-then run `npm run all` to do all sorts of checks and package all dependencies into `dist/index.js`
+To develop, setup with `npm install`,
+and then `npm run all` to do all sorts of checks and packaging.
+The packaged JavaScript is at `dist/index.js`
 
 If `npm run all` fails use `npm run package` instead.
 Usually it should be able to build; I just don't have time to make it pass all checks, especially when I'm not a TypeScript expert.
 
 To run locally, convert all inputs in [action.yml](action.yml) into upper case with the prefix `INPUT_`,
-and set those as your environment variables.
+and set those as your shell environment variables.
 
 For example, this updates the Minecraft version, then the dependencies
 ``` bash
 INPUT_UPDATE_MC_PATCH=true node dist/index.js
 ```
 
-## Sample workflow
+## Sample workflows
 
-Here is a simple sample workflow that performs the following tasks
+Here is a minimal sample workflow that performs the following tasks
 
-1. update `gradle.properties`
-2. when any of the dependencies get updated:
-    1. build mod using the updated dependencies
-    2. make a pull request ([you need to provide a token for this](https://github.com/marketplace/actions/create-pull-request#action-inputs))
+1. Update `gradle.properties`
+2. When any of the dependencies get updated, it makes a pull request with the latest dependencies ([you need to provide a token for this](https://github.com/marketplace/actions/create-pull-request#action-inputs))
 
 Copy and modify it (be sure to read the comments) to use in your repository.
 
@@ -161,36 +182,7 @@ jobs:
       - name: Update Dependencies
         id: depup
         uses: LucunJi/mc-depup@v0.0.1
-        with:
-          update_mc_patch: true
-          update_only_with_mc: false
-          tolerable: false
-
-      # #   send file to other jobs using outputs when it is less than 50MB
-      # #   so we don't need to repeat 'if' in each step
-      # #   you can also use workflow artifacts to achieve the same effect
-      # - name: Send Properties
-      #   id: send_properties
-      #   run: |
-      #     properties="$(cat gradle.properties)"
-      #     properties_escaped="${properties//$'\n'/\\n}"
-      #     properties_escaped="${properties_escaped//$'\r'/\\r}"
-      #     echo "properties=$properties_escaped" >> "$GITHUB_OUTPUT"
   
-      - name: Setup Java
-        if: ${{ steps.depup.outputs.any_update == 'true' }}
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Build
-        if: ${{ steps.depup.outputs.any_update == 'true' }}
-        id: build
-        run: |
-          chmod +x ./gradlew
-          ./gradlew clean build
-      
       # see: https://github.com/marketplace/actions/create-pull-request
       - name: Pull Request
         if: ${{ steps.depup.outputs.any_update == 'true' }}
@@ -208,7 +200,7 @@ jobs:
 ## Sample settings
 
 The file containing all your settings should be placed in `.github/modding-dependencies.yml`,
-which tells MC-DepUp about the dependencies and corresponding variables in `gradle.properties`.
+which tells MC-DepUp about the dependencies and corresponding properties in `gradle.properties`.
 
 
 ### Fabric and Fabric API
@@ -226,24 +218,27 @@ You can uncomment it after adding additional steps in to handle that.
 #   groupId: net.fabricmc
 #   artifactId: yarn
 #   version: "${mcVersion}+build.#"
-#   variables:
-#     - yarn_mappings: version
+#   properties:
+#     yarn_mappings:
+#       source: version
 
 # Fabric Loader
 - repository: https://maven.fabricmc.net
   groupId: net.fabricmc
   artifactId: fabric-loader
-  version: "#.#.#"
-  variables:
-    - loader_version: version
+  version: "*"
+  properties:
+    loader_version:
+      source: version
 
 # Fabric API
 - repository: https://maven.fabricmc.net
   groupId: net.fabricmc.fabric-api
   artifactId: fabric-api
-  version: "#.#.#+${mcVersion}"
-  variables:
-    - fabric_version: version
+  version: "*+${mcVersion}"
+  properties:
+    fabric_version:
+      source: version
 ```
 </details>
 
@@ -257,9 +252,10 @@ You can uncomment it after adding additional steps in to handle that.
 - repository: https://maven.neoforged.net/releases
   groupId: net.neoforged
   artifactId: neoforge
-  version: "${mcMinor}.${mcPatch}.#"
-  variables:
-    - neo_version: version
+  version: "${mcMinor}.${mcPatch}.*"
+  properties:
+    neo_version:
+      source: version
 ```
 </details>
 
@@ -273,9 +269,10 @@ You can uncomment it after adding additional steps in to handle that.
 - repository: https://maven.minecraftforge.net/
   groupId: net.minecraftforge
   artifactId: forge
-  version: "${mcVersion}-#.#.#"
-  variables:
-    - forge_version: version
+  version: "${mcVersion}-*"
+  properties:
+    forge_version:
+      source: version
 ```
 </details>
 
@@ -288,11 +285,14 @@ You can uncomment it after adding additional steps in to handle that.
 # malilib
 - repository: https://masa.dy.fi/maven
   groupId: fi.dy.masa.malilib
-  artifactId: malilib-fabric-${mcMajor}.${mcMinor}.${mcPatch}
-  version: "#.#.#"
-  variables:
-    - malilib_artifact: artifactId
-    - malilib_version: version
+  artifactId: "malilib-fabric-${mcVersion}"
+  version: "*"
+  properties:
+    malilib_minecraft_version:
+      source: wildcard
+      name: mcVersion
+    malilib_version:
+      source: version
 ```
 </details>
 
@@ -306,10 +306,13 @@ You can uncomment it after adding additional steps in to handle that.
 - repository: https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/
   groupId: software.bernie.geckolib
   artifactId: geckolib-fabric-${mcVersion}
-  version: "#.#.#"
-  variables:
-    - geckolib_artifact: artifactId
-    - geckolib_version: version
+  version: "*"
+  properties:
+    geckolib_minecraft_version:
+      source: wildcard
+      name: mcVersion
+    geckolib_version:
+      source: version
 ```
 </details>
 
@@ -326,8 +329,9 @@ so you may need to change the pattern of version.
   groupId: maven.modrinth
   artifactId: modmenu
   # change this according to your need
-  version: "9.#.#"
-  variables:
-    - mod_menu_version: version
+  version: "9.*"
+  properties:
+    mod_menu_version:
+      source: version
 ```
 </details>

@@ -52,7 +52,6 @@ export async function fetchMavenMeta(repo: string, groupId: string, artifactId: 
     const text = await resp.text()
     const xml = MAVEN_META_PARSER.parse(text)
     const versions = xml.metadata?.versioning?.versions?.version
-    console.log(versions)
     if (Array.isArray(versions)) {
         for (const version of versions) if (!isString(version))
             throw new Error('Some version is not a string')

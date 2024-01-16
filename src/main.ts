@@ -1,14 +1,13 @@
 import * as core from '@actions/core'
 import { fetchLatestMcVersions, fetchMavenMeta } from "./network"
-import { GitHubVariables, isString } from "./utils"
+import { GitHubVariables } from "./utils"
 import { McVersion, DependencyVersion } from './version'
-import { Dependency, DependencySettings } from './dependency'
+import { Dependency, DependencyContext, DependencySettings, contextualWildcardExpander } from './dependency'
 import * as prop from "properties-parser"
 import { setTimeout } from "timers/promises"
 
 const PROPERTIES_FILE = 'gradle.properties'
 const MINECRAFT_VERSION_KEY = 'minecraft_version'
-const CONFIG_FILEPATH = 'modding-dependencies.yml'
 
 /**
  * The main function for the action.
@@ -18,7 +17,7 @@ export async function run(): Promise<void> {
     try {
         const properties = prop.createEditor(PROPERTIES_FILE)
         const githubVars = new GitHubVariables()
-        const depSettings = await DependencySettings.readFromFile(CONFIG_FILEPATH)
+        const depSettings = await DependencySettings.readFromFile(githubVars.configPath)
 
         const currMcVersionStr = properties.get(MINECRAFT_VERSION_KEY)
         if (currMcVersionStr === undefined)
@@ -44,106 +43,140 @@ export async function run(): Promise<void> {
         }
 
         const needUpdateDep = !githubVars.updateOnlyWithMc || newerMcVersion
-        let updatedVariables = 0
-        let totalVariables = 0
+        let updatedProps = 0
+        const totalProps = depSettings.dependencies
+            .flatMap(dep => Array.from(dep.properties.entries())).length
         if (needUpdateDep) {
 
             const tasks = depSettings.dependencies
-                .map((dep: Dependency, i: number) =>
-                    (async (): Promise<ReturnType<typeof fetchUpdate> | undefined> => {
+                .map(async (dep: Dependency, i: number) =>
+                    (async (): Promise<ReturnType<typeof fetchDependencyUpdates>> => {
                         try {
-                            return await fetchUpdate(dep, targetMcVersion)
+                            return await fetchDependencyUpdates(dep, targetMcVersion)
                         } catch (error) {
                             if (!githubVars.tolerable) throw error
                             core.info(`Skip error in fetching the latest version for the dependency at index ${i} due to tolerable=true`)
                             if (error instanceof Error) core.info(error.message)
-                            return undefined
+                            return new Map<string, string>()
                         }
                     })()
                 )
 
             const results = await Promise.all(tasks)
-            // TODO:
-            // for (let i = 0; i < results.length; ++i) {
-            //     const result = results[i]
-            //     if (result === undefined)
-            //         continue
-            //
-            //     const config = configs[i]
-            //     for (const variable of config.variables) {
-            //         const [name, source] = Object.entries(variable)[0]
-            //         const oldVal = properties.get(name)
-            //         const newVal = result[source]
-            //         if (oldVal !== newVal) {
-            //             properties.set(name, newVal)
-            //             ++updatedVariables
-            //             core.info(`${name}: ${oldVal} => ${newVal}`)
-            //         } else {
-            //             core.info(`${name}: ${oldVal} => ${newVal} (no change)`)
-            //         }
-            //         ++totalVariables
-            //     }
-            // }
+
+            const newPropVals = results.flatMap(newValMap => Array.from(newValMap.entries()))
+            for (const [propName, newVal] of newPropVals) {
+                const oldVal = properties.get(propName)
+
+                let info = `${propName}: ${oldVal} => ${newVal}`
+                if (oldVal !== newVal) {
+                    properties.set(propName, newVal)
+                    ++updatedProps
+                } else {
+                    info += ' (no change)'
+                }
+                core.info(info)
+            }
         }
 
-        properties.save()
+        if (!githubVars.dryRun)
+            properties.save()
+        else
+            core.info('dry_run is set to true, the files will not be updated')
 
-        core.info(`${updatedVariables}/${totalVariables} dependencies updated`)
-        githubVars.setAnyUpdate(updatedVariables > 0)
+
+        core.info(`${updatedProps}/${totalProps} dependencies updated`)
+        githubVars.setAnyUpdate(updatedProps > 0)
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message)
     }
 }
 
 /**
- * @returns string of best matching version,
- *  or undefined if matching version exist
+ * @returns a map giving updated properties
  */
-async function fetchUpdate(dependency: Dependency, targetMcVersion: McVersion):
-    Promise<{ artifactId: string, version: string }> {
+async function fetchDependencyUpdates(dependency: Dependency, targetMcVersion: McVersion): Promise<Map<string, string>> {
 
     // making trials assumes that Minecraft has a very limited number of patches per minor version
-    for (let mcPatch = targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
-        if (mcPatch !== targetMcVersion.patch)
-            await setTimeout(1000)
+    for (const omitPatch of [false, true])
+        for (let mcPatch = omitPatch ? targetMcVersion.patch : 0; mcPatch >= 0; --mcPatch) {
+            if (mcPatch !== targetMcVersion.patch)
+                await setTimeout(1000)
 
-        const trialMcVersion = new McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch)
-        const contextualized = dependency.contextualize({ mcVersion: trialMcVersion })
-        const artifactId = contextualized.artifactId
-        let versions: string[]
-        try {
-            const meta = await fetchMavenMeta(dependency.repository, dependency.groupId, artifactId)
-            versions = meta.versions
-        } catch (error) {
-            core.debug(`Trial failed for ${dependency.groupId}:${artifactId} in ${dependency.repository} with Minecraft version ${trialMcVersion.toString()}`)
-            if (error instanceof Error) core.debug(error.message)
-            continue  // next trial
-        }
-
-        let bestVersionStr: string | undefined
-        let bestVersion: DependencyVersion | undefined
-        let bestCaptures: string[] | undefined
-        for (const versionStr of versions) {
-            const matchResult = versionStr.match(contextualized.version)
-
-            if (matchResult === null) continue  // ignore unmatched versions
-
-            const captures = matchResult.slice(1)
-            const parsedVersion = dependency.capturesToVersion(captures)
-
-            if (bestVersion === undefined || parsedVersion.compare(bestVersion) >= 0) {
-                bestVersionStr = versionStr
-                bestVersion = parsedVersion
-                bestCaptures = captures
+            const trialContext: DependencyContext = {
+                mcVersion: new McVersion(targetMcVersion.major, targetMcVersion.minor, mcPatch),
+                omitMcPatch: omitPatch
             }
+            const contextualized = dependency.contextualize(trialContext)
+            const artifactId = contextualized.artifactId
+            let versions: string[]
+            try {
+                const meta = await fetchMavenMeta(dependency.repository, dependency.groupId, artifactId)
+                versions = meta.versions
+            } catch (error) {
+                core.debug(`Trial failed for ${dependency.groupId}:${artifactId} in ${dependency.repository} with Minecraft version ${trialContext.mcVersion.toString(trialContext.omitMcPatch)}`)
+
+                if (error instanceof Error) core.debug(error.message)
+
+                continue  // next trial
+            }
+
+            let bestVersionStr: string | undefined
+            let bestVersion: DependencyVersion | undefined
+            let bestCaptures: string[] | undefined
+            for (const versionStr of versions) {
+                const matchResult = versionStr.match(contextualized.version)
+
+                if (matchResult === null) continue  // ignore unmatched versions
+
+                const captures = matchResult.slice(1)
+                const parsedVersion = dependency.capturesToVersion(captures)
+
+                if (bestVersion === undefined || parsedVersion.compare(bestVersion) >= 0) {
+                    bestVersionStr = versionStr
+                    bestVersion = parsedVersion
+                    bestCaptures = captures
+                }
+            }
+
+            if (bestVersionStr === undefined || bestCaptures === undefined)
+                continue
+
+            core.info(`The best matching version is ${bestVersionStr} for ${dependency.groupId}:${artifactId} in ${dependency.repository}`)
+
+            // resolve properties when a trial is successful
+            const newPropValues = new Map<string, string>()
+            for (const [propName, propAttrs] of dependency.properties.entries()) {
+
+                let newVal: string | undefined
+                switch (propAttrs.source) {
+                    case 'version':
+                        newVal = bestVersionStr
+                        break
+                    case 'artifactId':
+                        newVal = artifactId
+                        break
+                    case 'wildcard': {
+                        const expander = contextualWildcardExpander(propAttrs.wildcardName!)
+                        if (expander !== undefined) {
+                            newVal = expander(trialContext)
+                        } else {
+                            for (let j = 0; j < dependency.version.length; ++j) {
+                                if (dependency.version[j].type === 'named_wildcard'
+                                    && dependency.version[j].value === propAttrs.wildcardName) {
+
+                                    newVal = bestCaptures[j]
+                                }
+                            }
+                        }
+                        break
+                    }
+                }
+                newPropValues.set(propName, newVal!)
+            }
+
+            return newPropValues
         }
-
-        if (bestVersionStr === undefined || bestCaptures === undefined)
-            continue
-
-        core.info(`The best matching version is ${bestVersionStr} for ${dependency.groupId}:${artifactId} in ${dependency.repository}`)
-        return { artifactId: artifactId, version: bestVersionStr }
-    }
 
     throw new Error(`No matching version is found for ${dependency.groupId}:${dependency.artifactId} in ${dependency.repository}`)
 }
