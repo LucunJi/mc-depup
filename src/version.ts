@@ -72,30 +72,31 @@ export class DependencyVersion {
     compare(other: DependencyVersion): number {
         for (let i = 0; this.parts[i] !== undefined || other.parts[i] !== undefined; ++i) {
             const x = this.parts[i]; const y = other.parts[i]
-            const sx = isString(x); const sy = isString(y)
-            const ux = x === undefined; const uy = y === undefined
-            const nx = !sx && !ux; const ny = !sy && !uy
+            const xIsString = isString(x); const yIsString = isString(y)
+            // being undefined means the index is out of range in a versioning with less parts
+            const xIsUndef = x === undefined; const yIsUndef = y === undefined
+            const xIsNumber = !xIsString && !xIsUndef; const yIsNumber = !yIsString && !yIsUndef
 
             let cmp: number
-            if (nx && ny) {
+            if (xIsNumber && yIsNumber) {
                 cmp = (x as number) - (y as number)
-            } else if (nx) {  // numeric > letters or empty
+            } else if (xIsNumber) {  // numeric > letters or empty
                 cmp = 1
-            } else if (ny) {
+            } else if (yIsNumber) {
                 cmp = -1
-            } else if (sx && sy) {  // from this point, none of x and y can be numerical
-                const lx = (x as string).toLowerCase(); const ly = (y as string).toLowerCase()
-                const ix = SPECIALS.indexOf(lx); const iy = SPECIALS.indexOf(ly)
-                if (ix !== -1 && iy !== -1) {
-                    cmp = ix - iy
-                } else if (ix !== -1) {
-                    cmp = ix === 0 ? -1 : 1
-                } else if (iy !== -1) {
-                    cmp = iy === 0 ? 1 : -1
+            } else if (xIsString && yIsString) {  // from this point, none of x and y can be numerical
+                const xRank = SPECIALS.indexOf((x as string).toLowerCase())
+                const yRank = SPECIALS.indexOf((y as string).toLowerCase())
+                if (xRank !== -1 && yRank !== -1) {
+                    cmp = xRank - yRank
+                } else if (xRank !== -1) {
+                    cmp = xRank === 0 ? -1 : 1
+                } else if (yRank !== -1) {
+                    cmp = yRank === 0 ? 1 : -1
                 } else {  // both are non-special
                     cmp = compareStringLexigraphically(x as string, y as string)
                 }
-            } else if (sx) {  // letters < empty
+            } else if (xIsString) {  // y is undefined here, and letters are smaller than empty
                 cmp = -1
             } else {  // x and y can't be both undefined
                 cmp = 1

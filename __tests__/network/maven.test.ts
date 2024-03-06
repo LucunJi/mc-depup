@@ -1,12 +1,4 @@
-import * as network from "../src/network"
-
-describe('fetchLatestVersions', () => {
-    it('normal', async () => {
-        const versions = await network.fetchLatestMcVersions()
-        expect(versions).toBeInstanceOf(Map)
-        expect(versions.size).toBeGreaterThan(0)
-    })
-})
+import * as network from "../../src/network/maven"
 
 describe('fetchMavenVersion', () => {
     // the version lists used for test should be unlikely to be changed be changed in the future 

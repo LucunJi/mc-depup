@@ -1,4 +1,5 @@
-import { DependencySettings, PatternPart, Dependency, Property } from '../src/dependency'
+import { DependencySettings, Dependency, Property } from '../src/dependency'
+import { PatternPart } from '../src/pattern'
 import { McVersion } from '../src/version'
 
 

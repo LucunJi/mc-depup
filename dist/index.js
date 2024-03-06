@@ -2991,9 +2991,9 @@ const xmlNode = __nccwpck_require__(7462);
 const readDocType = __nccwpck_require__(6072);
 const toNumber = __nccwpck_require__(4526);
 
-const regx =
-  '<((!\\[CDATA\\[([\\s\\S]*?)(]]>))|((NAME:)?(NAME))([^>]*)>|((\\/)(NAME)\\s*>))([^<]*)'
-  .replace(/NAME/g, util.nameRegexp);
+// const regx =
+//   '<((!\\[CDATA\\[([\\s\\S]*?)(]]>))|((NAME:)?(NAME))([^>]*)>|((\\/)(NAME)\\s*>))([^<]*)'
+//   .replace(/NAME/g, util.nameRegexp);
 
 //const tagsRegx = new RegExp("<(\\/?[\\w:\\-\._]+)([^>]*)>(\\s*"+cdataRegx+")*([^<]+)?","g");
 //const tagsRegx = new RegExp("<(\\/?)((\\w*:)?([\\w:\\-\._]+))([^>]*)>([^<]*)("+cdataRegx+"([^<]*))*([^<]+)?","g");
@@ -3250,14 +3250,13 @@ const parseXml = function(xmlData) {
 
         textData = this.saveTextToParentTag(textData, currentNode, jPath);
 
+        let val = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true, true);
+        if(val == undefined) val = "";
+
         //cdata should be set even if it is 0 length string
         if(this.options.cdataPropName){
-          // let val = this.parseTextData(tagExp, this.options.cdataPropName, jPath + "." + this.options.cdataPropName, true, false, true);
-          // if(!val) val = "";
           currentNode.add(this.options.cdataPropName, [ { [this.options.textNodeName] : tagExp } ]);
         }else{
-          let val = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true);
-          if(val == undefined) val = "";
           currentNode.add(this.options.textNodeName, val);
         }
         
@@ -3486,8 +3485,8 @@ function readTagExp(xmlData,i, removeNSPrefix, closingChar = ">"){
   let tagName = tagExp;
   let attrExpPresent = true;
   if(separatorIndex !== -1){//separate tag name and attributes expression
-    tagName = tagExp.substr(0, separatorIndex).replace(/\s\s*$/, '');
-    tagExp = tagExp.substr(separatorIndex + 1);
+    tagName = tagExp.substring(0, separatorIndex);
+    tagExp = tagExp.substring(separatorIndex + 1).trimStart();
   }
 
   const rawTagName = tagName;
@@ -5290,7 +5289,7 @@ exports["default"] = _default;
 "use strict";
 
 /**
- * Manages dependency configuration
+ * Manages dependency settings
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -5315,81 +5314,20 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ContextualizedDependency = exports.Dependency = exports.DependencySettings = exports.PatternPart = exports.contextualWildcardExpander = void 0;
+exports.ContextualizedDependency = exports.Dependency = exports.DependencySettings = void 0;
 const yml = __importStar(__nccwpck_require__(4083));
 const fs_1 = __nccwpck_require__(7147);
 const utils_1 = __nccwpck_require__(1314);
 const version_1 = __nccwpck_require__(1946);
-const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
+const pattern_1 = __nccwpck_require__(6496);
 const VALID_PROPERTY_SOURCES = [
     'version', 'artifactId', 'wildcard'
 ];
-function contextualWildcardExpander(name) {
-    switch (name) {
-        case 'mcVersion': return (ctx) => ctx.mcVersion.toString(!ctx.omitMcPatch);
-        case 'mcMajor': return (ctx) => ctx.mcVersion.major.toString();
-        case 'mcMinor': return (ctx) => ctx.mcVersion.minor.toString();
-        case 'mcPatch': return (ctx) => ctx.mcVersion.patch.toString();
-        default: return undefined;
-    }
-}
-exports.contextualWildcardExpander = contextualWildcardExpander;
-// pattern
-class PatternPart {
-    type;
-    value;
-    hasCaptureGroup;
-    constructor(type, // RegExp /(.*)/ and the captured is compared as a SemVer 
-    value) {
-        this.type = type;
-        this.value = value;
-        switch (this.type) {
-            case 'wildcard':
-            case 'named_wildcard':
-                this.hasCaptureGroup = true;
-                break;
-            default:
-                this.hasCaptureGroup = false;
-                break;
-        }
-    }
-    /**
-     * @returns a part of RegExp properly escaped
-     */
-    contextualize(context, escapeLiteralResult) {
-        let ret;
-        switch (this.type) {
-            case 'literal':
-                ret = this.value;
-                break;
-            case 'contextual_wildcard':
-                ret = contextualWildcardExpander(this.value)(context);
-                break;
-            case 'wildcard':
-            case 'named_wildcard':
-                ret = '(.*)';
-                break;
-        }
-        if (escapeLiteralResult) {
-            switch (this.type) {
-                case 'literal':
-                case 'contextual_wildcard':
-                    ret = (0, escape_string_regexp_1.default)(ret);
-            }
-        }
-        return ret;
-    }
-}
-exports.PatternPart = PatternPart;
-// DependencySettings
 class DependencySettings {
     dependencies;
-    constructor(input) {
-        this.dependencies = readDependencies(input);
+    constructor(settingsString) {
+        this.dependencies = parseDependencies(settingsString);
     }
     static async readFromFile(path) {
         const input = await fs_1.promises.readFile(path);
@@ -5456,19 +5394,16 @@ class ContextualizedDependency {
     }
 }
 exports.ContextualizedDependency = ContextualizedDependency;
-function bracketType(name) {
-    return contextualWildcardExpander(name) !== undefined ? 'contextual_wildcard' : 'named_wildcard';
-}
 function checkArtifactIdParts(artifactId) {
     for (const part of artifactId) {
         if (!(part.type === 'literal' || part.type === 'contextual_wildcard'))
             throw new Error('artifactId can only contain literals or wildcards of Minecraft version');
     }
 }
-function readDependencies(input) {
+function parseDependencies(input) {
     const doc = yml.parse(input);
     if (!Array.isArray(doc))
-        throw new Error('Configuration must exist as an array');
+        throw new Error('Settings must be an array');
     const ret = [];
     for (const entry of doc) {
         const repository = entry['repository'];
@@ -5487,9 +5422,9 @@ function readDependencies(input) {
             if (actualType !== expectedType)
                 throw new Error(`${key} must exist as a ${expectedType}, but it is actually ${actualType}`);
         }
-        const parsedArtifactId = parsePattern(artifactId);
+        const parsedArtifactId = (0, pattern_1.parsePattern)(artifactId);
         checkArtifactIdParts(parsedArtifactId);
-        const parsedVersion = parsePattern(version);
+        const parsedVersion = (0, pattern_1.parsePattern)(version);
         const actualProperties = new Map();
         // TODO: add this as a grammar sugar later on
         // for (const part of parsedVersion) {
@@ -5509,7 +5444,7 @@ function readDependencies(input) {
             }
             if (source === 'wildcard') {
                 const wildcardName = propertyAttrs['name'] ?? propertyName;
-                if (!namedWildcardNames.has(wildcardName) && contextualWildcardExpander(wildcardName) === undefined) {
+                if (!namedWildcardNames.has(wildcardName) && !(0, pattern_1.isWildcardNameContextual)(wildcardName)) {
                     throw new Error(`To give '${propertyName}' a wildcard source, a wildcard with name '${wildcardName}' must exist in the pattern of version`);
                 }
                 actualProperties.set(propertyName, {
@@ -5528,56 +5463,6 @@ function readDependencies(input) {
         ret.push(new Dependency(repository, groupId, parsedArtifactId, parsedVersion, actualProperties));
     }
     return ret;
-}
-function parsePattern(pattern) {
-    if (pattern.length === 0)
-        return [];
-    const parts = [];
-    // This allows more flexibility if we want to add more patterns,
-    // as all patterns are processed in one-go
-    let start = 0;
-    let i = 0;
-    do {
-        let nonLiteralPart;
-        const end = i;
-        switch (pattern[i]) {
-            case '*':
-                nonLiteralPart = new PatternPart('wildcard', '');
-                ++i;
-                break;
-            case '$': {
-                ++i;
-                if (i < pattern.length && pattern[i] !== '{')
-                    break;
-                let right = i + 1;
-                while (right < pattern.length && pattern[right] !== '}')
-                    ++right;
-                if (right >= pattern.length)
-                    throw new Error('No right bracket is found');
-                // i + 1 <= right < pattern.length
-                const name = pattern.slice(i + 1, right);
-                nonLiteralPart = new PatternPart(bracketType(name), name);
-                i = right + 1;
-                break;
-            }
-            default:
-                ++i;
-                break;
-        }
-        if (nonLiteralPart !== undefined) {
-            // start <= end < pattern.length
-            if (end > start) {
-                parts.push(new PatternPart('literal', pattern.slice(start, end)));
-            }
-            start = i;
-            parts.push(nonLiteralPart);
-        }
-    } while (i < pattern.length);
-    if (start < pattern.length) {
-        const part = pattern.slice(start);
-        parts.push(new PatternPart('literal', part));
-    }
-    return parts;
 }
 
 
@@ -5614,10 +5499,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const network_1 = __nccwpck_require__(2280);
+const maven_1 = __nccwpck_require__(1335);
+const minecraft_1 = __nccwpck_require__(9900);
 const utils_1 = __nccwpck_require__(1314);
 const version_1 = __nccwpck_require__(1946);
 const dependency_1 = __nccwpck_require__(2209);
+const pattern_1 = __nccwpck_require__(6496);
 const prop = __importStar(__nccwpck_require__(4414));
 const promises_1 = __nccwpck_require__(8670);
 const PROPERTIES_FILE = 'gradle.properties';
@@ -5638,7 +5525,7 @@ async function run() {
         let targetMcVersion = currMcVersion;
         let newerMcVersion = false;
         if (githubVars.updateMcPatch) {
-            const mcVersions = await (0, network_1.fetchLatestMcVersions)();
+            const mcVersions = await (0, minecraft_1.fetchLatestMcPatches)();
             const latestMcPatch = mcVersions.get(currMcVersion.minor);
             targetMcVersion = new version_1.McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch);
             newerMcVersion = targetMcVersion.compare(currMcVersion) > 0;
@@ -5717,7 +5604,7 @@ async function fetchDependencyUpdates(dependency, targetMcVersion) {
             const artifactId = contextualized.artifactId;
             let versions;
             try {
-                const meta = await (0, network_1.fetchMavenMeta)(dependency.repository, dependency.groupId, artifactId);
+                const meta = await (0, maven_1.fetchMavenMeta)(dependency.repository, dependency.groupId, artifactId);
                 versions = meta.versions;
             }
             catch (error) {
@@ -5756,7 +5643,7 @@ async function fetchDependencyUpdates(dependency, targetMcVersion) {
                         newVal = artifactId;
                         break;
                     case 'wildcard': {
-                        const expander = (0, dependency_1.contextualWildcardExpander)(propAttrs.wildcardName);
+                        const expander = (0, pattern_1.getContextualWildcardExpander)(propAttrs.wildcardName);
                         if (expander !== undefined) {
                             newVal = expander(trialContext);
                         }
@@ -5781,7 +5668,7 @@ async function fetchDependencyUpdates(dependency, targetMcVersion) {
 
 /***/ }),
 
-/***/ 2280:
+/***/ 1335:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -5810,27 +5697,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchMavenMeta = exports.fetchLatestMcVersions = void 0;
+exports.fetchMavenMeta = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fast_xml_parser_1 = __nccwpck_require__(2603);
 const utils_1 = __nccwpck_require__(1314);
-const version_1 = __nccwpck_require__(1946);
-const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
-async function fetchLatestMcVersions() {
-    const resp = await fetch(VERSION_MANIFEST_URL);
-    const json = await resp.json();
-    const latest = new Map(); // minor to patch version
-    for (const versionStr of json.versions) {
-        if (versionStr.type === 'release') {
-            const version = version_1.McVersion.fromString(versionStr.id);
-            if ((latest.get(version.minor) ?? -1) < version.patch) {
-                latest.set(version.minor, version.patch);
-            }
-        }
-    }
-    return latest;
-}
-exports.fetchLatestMcVersions = fetchLatestMcVersions;
 const MAVEN_META_PARSER = new fast_xml_parser_1.XMLParser({
     numberParseOptions: {
         hex: false,
@@ -5872,6 +5742,163 @@ async function fetchMavenMeta(repo, groupId, artifactId) {
     return { versions: versions };
 }
 exports.fetchMavenMeta = fetchMavenMeta;
+
+
+/***/ }),
+
+/***/ 9900:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fetchLatestMcPatches = void 0;
+const version_1 = __nccwpck_require__(1946);
+const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
+/**
+ * Returns a mapping from minor versions to patch versions for Minecraft
+ */
+async function fetchLatestMcPatches() {
+    const resp = await fetch(VERSION_MANIFEST_URL);
+    const json = await resp.json();
+    const latest = new Map(); // minor to patch version
+    for (const versionStr of json.versions) {
+        if (versionStr.type === 'release') {
+            const version = version_1.McVersion.fromString(versionStr.id);
+            if ((latest.get(version.minor) ?? -1) < version.patch) {
+                latest.set(version.minor, version.patch);
+            }
+        }
+    }
+    return latest;
+}
+exports.fetchLatestMcPatches = fetchLatestMcPatches;
+
+
+/***/ }),
+
+/***/ 6496:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parsePattern = exports.PatternPart = exports.isWildcardNameContextual = exports.getContextualWildcardExpander = void 0;
+const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
+function getContextualWildcardExpander(name) {
+    switch (name) {
+        case 'mcVersion': return (ctx) => ctx.mcVersion.toString(!ctx.omitMcPatch);
+        case 'mcMajor': return (ctx) => ctx.mcVersion.major.toString();
+        case 'mcMinor': return (ctx) => ctx.mcVersion.minor.toString();
+        case 'mcPatch': return (ctx) => ctx.mcVersion.patch.toString();
+        default: return undefined;
+    }
+}
+exports.getContextualWildcardExpander = getContextualWildcardExpander;
+function isWildcardNameContextual(name) {
+    return getContextualWildcardExpander(name) !== undefined;
+}
+exports.isWildcardNameContextual = isWildcardNameContextual;
+class PatternPart {
+    type;
+    value;
+    hasCaptureGroup;
+    constructor(type, // RegExp /(.*)/ and the captured is compared as a SemVer 
+    value) {
+        this.type = type;
+        this.value = value;
+        switch (this.type) {
+            case 'wildcard':
+            case 'named_wildcard':
+                this.hasCaptureGroup = true;
+                break;
+            default:
+                this.hasCaptureGroup = false;
+                break;
+        }
+    }
+    /**
+     * @returns a part of RegExp properly escaped
+     */
+    contextualize(context, escapeLiteralResult) {
+        let ret;
+        switch (this.type) {
+            case 'literal':
+                ret = this.value;
+                break;
+            case 'contextual_wildcard':
+                ret = getContextualWildcardExpander(this.value)(context);
+                break;
+            case 'wildcard':
+            case 'named_wildcard':
+                ret = '(.*)';
+                break;
+        }
+        if (escapeLiteralResult) {
+            switch (this.type) {
+                case 'literal':
+                case 'contextual_wildcard':
+                    ret = (0, escape_string_regexp_1.default)(ret);
+            }
+        }
+        return ret;
+    }
+}
+exports.PatternPart = PatternPart;
+function parsePattern(pattern) {
+    if (pattern.length === 0)
+        return [];
+    const parts = [];
+    // This allows more flexibility if we want to add more patterns,
+    // as all patterns are processed in one-go
+    let start = 0;
+    let i = 0;
+    do {
+        let nonLiteralPart;
+        const end = i;
+        switch (pattern[i]) {
+            case '*':
+                nonLiteralPart = new PatternPart('wildcard', '');
+                ++i;
+                break;
+            case '$': {
+                ++i;
+                if (i < pattern.length && pattern[i] !== '{')
+                    break;
+                let right = i + 1;
+                while (right < pattern.length && pattern[right] !== '}')
+                    ++right;
+                if (right >= pattern.length)
+                    throw new Error('No right bracket is found');
+                // i + 1 <= right < pattern.length
+                const name = pattern.slice(i + 1, right);
+                nonLiteralPart = new PatternPart(isWildcardNameContextual(name) ? 'contextual_wildcard' : 'named_wildcard', name);
+                i = right + 1;
+                break;
+            }
+            default:
+                ++i;
+                break;
+        }
+        if (nonLiteralPart !== undefined) {
+            // start <= end < pattern.length
+            if (end > start) {
+                parts.push(new PatternPart('literal', pattern.slice(start, end)));
+            }
+            start = i;
+            parts.push(nonLiteralPart);
+        }
+    } while (i < pattern.length);
+    if (start < pattern.length) {
+        const part = pattern.slice(start);
+        parts.push(new PatternPart('literal', part));
+    }
+    return parts;
+}
+exports.parsePattern = parsePattern;
 
 
 /***/ }),
@@ -6036,41 +6063,40 @@ class DependencyVersion {
         for (let i = 0; this.parts[i] !== undefined || other.parts[i] !== undefined; ++i) {
             const x = this.parts[i];
             const y = other.parts[i];
-            const sx = (0, utils_1.isString)(x);
-            const sy = (0, utils_1.isString)(y);
-            const ux = x === undefined;
-            const uy = y === undefined;
-            const nx = !sx && !ux;
-            const ny = !sy && !uy;
+            const xIsString = (0, utils_1.isString)(x);
+            const yIsString = (0, utils_1.isString)(y);
+            // being undefined means the index is out of range in a versioning with less parts
+            const xIsUndef = x === undefined;
+            const yIsUndef = y === undefined;
+            const xIsNumber = !xIsString && !xIsUndef;
+            const yIsNumber = !yIsString && !yIsUndef;
             let cmp;
-            if (nx && ny) {
+            if (xIsNumber && yIsNumber) {
                 cmp = x - y;
             }
-            else if (nx) { // numeric > letters or empty
+            else if (xIsNumber) { // numeric > letters or empty
                 cmp = 1;
             }
-            else if (ny) {
+            else if (yIsNumber) {
                 cmp = -1;
             }
-            else if (sx && sy) { // from this point, none of x and y can be numerical
-                const lx = x.toLowerCase();
-                const ly = y.toLowerCase();
-                const ix = SPECIALS.indexOf(lx);
-                const iy = SPECIALS.indexOf(ly);
-                if (ix !== -1 && iy !== -1) {
-                    cmp = ix - iy;
+            else if (xIsString && yIsString) { // from this point, none of x and y can be numerical
+                const xRank = SPECIALS.indexOf(x.toLowerCase());
+                const yRank = SPECIALS.indexOf(y.toLowerCase());
+                if (xRank !== -1 && yRank !== -1) {
+                    cmp = xRank - yRank;
                 }
-                else if (ix !== -1) {
-                    cmp = ix === 0 ? -1 : 1;
+                else if (xRank !== -1) {
+                    cmp = xRank === 0 ? -1 : 1;
                 }
-                else if (iy !== -1) {
-                    cmp = iy === 0 ? 1 : -1;
+                else if (yRank !== -1) {
+                    cmp = yRank === 0 ? 1 : -1;
                 }
                 else { // both are non-special
                     cmp = compareStringLexigraphically(x, y);
                 }
             }
-            else if (sx) { // letters < empty
+            else if (xIsString) { // y is undefined here, and letters are smaller than empty
                 cmp = -1;
             }
             else { // x and y can't be both undefined

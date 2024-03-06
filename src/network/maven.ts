@@ -1,25 +1,6 @@
 import * as core from '@actions/core'
 import { XMLParser } from 'fast-xml-parser'
-import { isString } from './utils'
-import { McVersion } from './version'
-
-const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json'
-
-export async function fetchLatestMcVersions(): Promise<Map<number, number>> {
-    const resp = await fetch(VERSION_MANIFEST_URL)
-    const json = await resp.json()
-    const latest = new Map<number, number>()  // minor to patch version
-    for (const versionStr of json.versions!) {
-        if (versionStr.type === 'release') {
-            const version = McVersion.fromString(versionStr.id)
-
-            if ((latest.get(version.minor) ?? -1) < version.patch) {
-                latest.set(version.minor, version.patch)
-            }
-        }
-    }
-    return latest
-}
+import { isString } from '../utils'
 
 const MAVEN_META_PARSER = new XMLParser({
     numberParseOptions: {  // don't parse versions like *.*
@@ -60,3 +41,4 @@ export async function fetchMavenMeta(repo: string, groupId: string, artifactId: 
     }
     return { versions: versions as string[] }
 }
+

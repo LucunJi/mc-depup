@@ -1,8 +1,10 @@
 import * as core from '@actions/core'
-import { fetchLatestMcVersions, fetchMavenMeta } from "./network"
+import { fetchMavenMeta } from "./network/maven"
+import { fetchLatestMcPatches } from "./network/minecraft"
 import { GitHubVariables } from "./utils"
 import { McVersion, DependencyVersion } from './version'
-import { Dependency, DependencyContext, DependencySettings, contextualWildcardExpander } from './dependency'
+import { Dependency, DependencyContext, DependencySettings } from './dependency'
+import { getContextualWildcardExpander } from './pattern'
 import * as prop from "properties-parser"
 import { setTimeout } from "timers/promises"
 
@@ -28,7 +30,7 @@ export async function run(): Promise<void> {
         let targetMcVersion = currMcVersion
         let newerMcVersion = false
         if (githubVars.updateMcPatch) {
-            const mcVersions = await fetchLatestMcVersions()
+            const mcVersions = await fetchLatestMcPatches()
             const latestMcPatch = mcVersions.get(currMcVersion.minor)!
             targetMcVersion = new McVersion(currMcVersion.major, currMcVersion.minor, latestMcPatch)
             newerMcVersion = targetMcVersion.compare(currMcVersion) > 0
@@ -157,7 +159,7 @@ async function fetchDependencyUpdates(dependency: Dependency, targetMcVersion: M
                         newVal = artifactId
                         break
                     case 'wildcard': {
-                        const expander = contextualWildcardExpander(propAttrs.wildcardName!)
+                        const expander = getContextualWildcardExpander(propAttrs.wildcardName!)
                         if (expander !== undefined) {
                             newVal = expander(trialContext)
                         } else {
