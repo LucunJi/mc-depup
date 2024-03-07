@@ -21,6 +21,10 @@ export class GitHubVariables {
     setAnyUpdate(val: boolean): void {
         core.setOutput('any_update', val)
     }
+
+    setSummary(val: string): void {
+        core.setOutput('summary', val)
+    }
 }
 
 export function isString<T>(x: T): boolean {

@@ -5544,6 +5544,7 @@ async function run() {
         let updatedProps = 0;
         const totalProps = depSettings.dependencies
             .flatMap(dep => Array.from(dep.properties.entries())).length;
+        const summary = [];
         if (needUpdateDep) {
             const tasks = depSettings.dependencies
                 .map(async (dep, i) => (async () => {
@@ -5571,6 +5572,7 @@ async function run() {
                 else {
                     info += ' (no change)';
                 }
+                summary.push(info);
                 core.info(info);
             }
         }
@@ -5580,6 +5582,7 @@ async function run() {
             core.info('dry_run is set to true, the files will not be updated');
         core.info(`${updatedProps}/${totalProps} dependencies updated`);
         githubVars.setAnyUpdate(updatedProps > 0);
+        githubVars.setSummary(summary.join('\n'));
     }
     catch (error) {
         if (error instanceof Error)
@@ -5950,6 +5953,9 @@ class GitHubVariables {
     dryRun = booleanInput('dry_run', false);
     setAnyUpdate(val) {
         core.setOutput('any_update', val);
+    }
+    setSummary(val) {
+        core.setOutput('summary', val);
     }
 }
 exports.GitHubVariables = GitHubVariables;

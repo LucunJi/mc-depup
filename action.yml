@@ -42,6 +42,10 @@ outputs:
       'Anything new according to configured update'
       'true | false'
 
+  summary:
+    description: |
+      'A summary of updated dependencies, useful for making notifications'
+
 runs:
   using: node20
   main: dist/index.js

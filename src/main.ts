@@ -48,6 +48,7 @@ export async function run(): Promise<void> {
         let updatedProps = 0
         const totalProps = depSettings.dependencies
             .flatMap(dep => Array.from(dep.properties.entries())).length
+        const summary: string[] = []
         if (needUpdateDep) {
 
             const tasks = depSettings.dependencies
@@ -77,6 +78,7 @@ export async function run(): Promise<void> {
                 } else {
                     info += ' (no change)'
                 }
+                summary.push(info)
                 core.info(info)
             }
         }
@@ -89,6 +91,7 @@ export async function run(): Promise<void> {
 
         core.info(`${updatedProps}/${totalProps} dependencies updated`)
         githubVars.setAnyUpdate(updatedProps > 0)
+        githubVars.setSummary(summary.join('\n'))
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message)
     }
