@@ -67,4 +67,6 @@ jobs:
 
       - name: Print Output
         id: output
-        run: echo "${{ steps.test-action.outputs.any_update }}"
+        run: |
+          echo "${{ steps.test-action.outputs.any_update }}"
+          echo "${{ steps.test-action.outputs.summary }}"
