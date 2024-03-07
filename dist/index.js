@@ -5595,8 +5595,10 @@ exports.run = run;
  */
 async function fetchDependencyUpdates(dependency, targetMcVersion) {
     // making trials assumes that Minecraft has a very limited number of patches per minor version
+    let versions = [];
+    let lastArtifactId;
     for (const omitPatch of [false, true])
-        for (let mcPatch = omitPatch ? targetMcVersion.patch : 0; mcPatch >= 0; --mcPatch) {
+        for (let mcPatch = omitPatch ? 0 : targetMcVersion.patch; mcPatch >= 0; --mcPatch) {
             if (mcPatch !== targetMcVersion.patch)
                 await (0, promises_1.setTimeout)(1000);
             const trialContext = {
@@ -5605,16 +5607,18 @@ async function fetchDependencyUpdates(dependency, targetMcVersion) {
             };
             const contextualized = dependency.contextualize(trialContext);
             const artifactId = contextualized.artifactId;
-            let versions;
-            try {
-                const meta = await (0, maven_1.fetchMavenMeta)(dependency.repository, dependency.groupId, artifactId);
-                versions = meta.versions;
-            }
-            catch (error) {
-                core.debug(`Trial failed for ${dependency.groupId}:${artifactId} in ${dependency.repository} with Minecraft version ${trialContext.mcVersion.toString(trialContext.omitMcPatch)}`);
-                if (error instanceof Error)
-                    core.debug(error.message);
-                continue; // next trial
+            if (lastArtifactId !== artifactId) {
+                try {
+                    const meta = await (0, maven_1.fetchMavenMeta)(dependency.repository, dependency.groupId, artifactId);
+                    versions = meta.versions;
+                }
+                catch (error) {
+                    core.debug(`Trial failed for ${dependency.groupId}:${artifactId} in ${dependency.repository} with Minecraft version ${trialContext.mcVersion.toString(trialContext.omitMcPatch)}`);
+                    if (error instanceof Error)
+                        core.debug(error.message);
+                    continue; // next trial
+                }
+                lastArtifactId = artifactId;
             }
             let bestVersionStr;
             let bestVersion;
@@ -5665,7 +5669,7 @@ async function fetchDependencyUpdates(dependency, targetMcVersion) {
             }
             return newPropValues;
         }
-    throw new Error(`No matching version is found for ${dependency.groupId}:${dependency.artifactId} in ${dependency.repository}`);
+    throw new Error(`No matching version is found for ${dependency.groupId} in ${dependency.repository}`);
 }
 
 

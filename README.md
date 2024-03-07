@@ -193,6 +193,7 @@ jobs:
           add-paths: gradle.properties
           commit-message: Update dependencies
           title: Update dependencies
+          body: ${{ steps.depup.outputs.summary }}
           branch: automated/update-dependencies
 ```
 </details>
@@ -218,7 +219,7 @@ You can uncomment it after adding additional steps in to handle that.
 # - repository: https://maven.fabricmc.net
 #   groupId: net.fabricmc
 #   artifactId: yarn
-#   version: "${mcVersion}+build.#"
+#   version: "${mcVersion}+*"
 #   properties:
 #     yarn_mappings:
 #       source: version
