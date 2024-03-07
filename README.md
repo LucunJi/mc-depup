@@ -187,7 +187,7 @@ jobs:
       # see: https://github.com/marketplace/actions/create-pull-request
       - name: Pull Request
         if: ${{ steps.depup.outputs.any_update == 'true' }}
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.PR_BOT_PAT  }}  # replace this with your token
           add-paths: gradle.properties
