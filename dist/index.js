@@ -5497,7 +5497,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = run;
 const core = __importStar(__nccwpck_require__(2186));
 const maven_1 = __nccwpck_require__(1335);
 const minecraft_1 = __nccwpck_require__(9900);
@@ -5589,7 +5589,6 @@ async function run() {
             core.setFailed(error.message);
     }
 }
-exports.run = run;
 /**
  * @returns a map giving updated properties
  */
@@ -5704,7 +5703,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchMavenMeta = void 0;
+exports.fetchMavenMeta = fetchMavenMeta;
 const core = __importStar(__nccwpck_require__(2186));
 const fast_xml_parser_1 = __nccwpck_require__(2603);
 const utils_1 = __nccwpck_require__(1314);
@@ -5748,7 +5747,6 @@ async function fetchMavenMeta(repo, groupId, artifactId) {
     }
     return { versions: versions };
 }
-exports.fetchMavenMeta = fetchMavenMeta;
 
 
 /***/ }),
@@ -5759,7 +5757,7 @@ exports.fetchMavenMeta = fetchMavenMeta;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchLatestMcPatches = void 0;
+exports.fetchLatestMcPatches = fetchLatestMcPatches;
 const version_1 = __nccwpck_require__(1946);
 const VERSION_MANIFEST_URL = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 /**
@@ -5779,7 +5777,6 @@ async function fetchLatestMcPatches() {
     }
     return latest;
 }
-exports.fetchLatestMcPatches = fetchLatestMcPatches;
 
 
 /***/ }),
@@ -5793,7 +5790,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parsePattern = exports.PatternPart = exports.isWildcardNameContextual = exports.getContextualWildcardExpander = void 0;
+exports.PatternPart = void 0;
+exports.getContextualWildcardExpander = getContextualWildcardExpander;
+exports.isWildcardNameContextual = isWildcardNameContextual;
+exports.parsePattern = parsePattern;
 const escape_string_regexp_1 = __importDefault(__nccwpck_require__(8691));
 function getContextualWildcardExpander(name) {
     switch (name) {
@@ -5804,11 +5804,9 @@ function getContextualWildcardExpander(name) {
         default: return undefined;
     }
 }
-exports.getContextualWildcardExpander = getContextualWildcardExpander;
 function isWildcardNameContextual(name) {
     return getContextualWildcardExpander(name) !== undefined;
 }
-exports.isWildcardNameContextual = isWildcardNameContextual;
 class PatternPart {
     type;
     value;
@@ -5905,7 +5903,6 @@ function parsePattern(pattern) {
     }
     return parts;
 }
-exports.parsePattern = parsePattern;
 
 
 /***/ }),
@@ -5939,7 +5936,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeOf = exports.isObject = exports.isString = exports.GitHubVariables = void 0;
+exports.GitHubVariables = void 0;
+exports.isString = isString;
+exports.isObject = isObject;
+exports.typeOf = typeOf;
 const core = __importStar(__nccwpck_require__(2186));
 function booleanInput(key, defaultVal) {
     const input = core.getInput(key);
@@ -5966,11 +5966,9 @@ exports.GitHubVariables = GitHubVariables;
 function isString(x) {
     return typeOf(x) === 'string';
 }
-exports.isString = isString;
 function isObject(x) {
     return typeOf(x) === 'object';
 }
-exports.isObject = isObject;
 function typeOf(x) {
     if (x === undefined)
         return 'undefined';
@@ -5989,7 +5987,6 @@ function typeOf(x) {
     else
         return 'object';
 }
-exports.typeOf = typeOf;
 
 
 /***/ }),
