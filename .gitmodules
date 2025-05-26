@@ -1,0 +1,3 @@
+[submodule ".sourcecode"]
+	path = .sourcecode
+	url = git@github.com:LucunJi/mc-depup-src.git
