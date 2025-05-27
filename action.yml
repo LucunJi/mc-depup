@@ -1,23 +1,50 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: 'MC-DepUp'
+description: "Let's dep-up your mods! It automatically updates Minecraft version and dependencies in your gradle.properties"
+author: 'LucunJi'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: 'chevrons-up'
+  color: 'yellow'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: Your input description here
-    required: true
-    default: '1000'
+  config_path:
+    description: |
+      'Path to the config file'
+    default: './.github/modding-dependencies.yml'
 
-# Define your outputs here.
+  update_mc_patch:
+    description: |
+      'Update patch version of Minecraft'
+      'true | false'
+    default: true
+
+  update_only_with_mc:
+    description: |
+      'Update only when Minecraft updates (depends on update_mc_patch)'
+      'true | false'
+    default: false
+
+  tolerable:
+    description: |
+      'Allow the update of any dependency to fail'
+      'true | false'
+    default: false
+
+  dry_run:
+    description: |
+      'The new configuration is not written to the file'
+      'true | false'
+    default: false
+
 outputs:
-  time:
-    description: Your output description here
+  any_update:
+    description: |
+      'Anything new according to configured update'
+      'true | false'
+
+  summary:
+    description: |
+      'A summary of updated dependencies, useful for making notifications'
 
 runs:
   using: node20

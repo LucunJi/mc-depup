@@ -12,7 +12,8 @@ const config = {
     format: 'es',
     sourcemap: true
   },
-  plugins: [typescript(), nodeResolve({ preferBuiltins: true }), commonjs()]
+  preserveSymlinks: true,
+  plugins: [typescript(), nodeResolve({ preferBuiltins: true }), commonjs({ extensions: ['.js', '.ts'] })]
 }
 
 export default config
